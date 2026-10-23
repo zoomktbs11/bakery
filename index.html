@@ -7,1615 +7,1195 @@
   
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <!-- Tailwind CSS -->
+  
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  
-  <!-- Leaflet CSS for Map screen -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
+            brandDark: '#0a0d0e',
+            brandCard: '#111618',
+            brandSurface: '#182023',
+            brandBorder: '#232d32',
             mint: {
-              DEFAULT: '#14b8a6',
-              light: '#2dd4bf',
-              lighter: '#5eead4',
-              dark: '#0f766e',
-              deep: '#042f2e',
-              bgLight: 'rgba(20, 184, 166, 0.12)',
-              glow: 'rgba(45, 212, 191, 0.45)'
-            },
-            app: {
-              bg: '#0a0d12',
-              dark: '#0f141c',
-              card: '#131922',
-              cardHover: '#18212e',
-              border: '#1f2937',
-              borderLight: '#2e3d4f',
-              muted: '#8e9ba8'
+              400: '#2dd4bf',
+              500: '#14b8a6',
+              600: '#0d9488',
+              glow: 'rgba(45, 212, 191, 0.25)'
             }
           },
           fontFamily: {
-            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-            display: ['Montserrat', 'Inter', 'sans-serif']
-          },
-          boxShadow: {
-            mint: '0 4px 18px -2px rgba(20, 184, 166, 0.45)',
-            mintGlow: '0 0 22px rgba(45, 212, 191, 0.4)',
-            card: '0 8px 24px -4px rgba(0, 0, 0, 0.65)'
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
           }
         }
       }
     }
   </script>
 
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Leaflet Map CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap');
-
-    :root {
-      color-scheme: dark;
-    }
-
-    body {
-      background-color: #05070a;
-      font-family: 'Inter', sans-serif;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      padding-bottom: env(safe-area-inset-bottom, 0px);
-    }
-
+    /* Плавная прокрутка и скрытие скроллбаров */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-    .tab-content {
-      display: none;
-      opacity: 0;
-      transform: translateY(4px);
-      transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+    
+    /* Свечение элементов */
+    .glow-mint {
+      box-shadow: 0 0 15px rgba(45, 212, 191, 0.2);
     }
-    .tab-content.active {
-      display: block;
-      opacity: 1;
-      transform: translateY(0);
-    }
-
+    
+    /* Темный стиль карты Leaflet */
     .leaflet-tile {
-      filter: brightness(0.65) invert(1) contrast(2.5) hue-rotate(185deg) saturate(0.35) brightness(0.9);
+      filter: brightness(0.65) invert(1) contrast(3) hue-rotate(175deg) saturate(0.35);
     }
     .leaflet-container {
-      background: #0d1218 !important;
-      font-family: 'Inter', sans-serif !important;
+      background: #0a0d0e !important;
+      font-family: inherit;
     }
-
-    @keyframes popBadge {
-      0% { transform: scale(0.6); }
-      60% { transform: scale(1.2); }
-      100% { transform: scale(1); }
-    }
-    .badge-pop { animation: popBadge 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-
-    .media-placeholder-glow {
-      background: radial-gradient(circle at center, rgba(20, 184, 166, 0.22) 0%, rgba(15, 20, 28, 0.95) 75%);
-    }
-
-    .line-clamp-2 {
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+    .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+      background: #111618 !important;
+      color: #fff !important;
+      border: 1px solid #232d32;
+      border-radius: 12px;
     }
   </style>
 </head>
-<body class="text-slate-100 flex justify-center items-center min-h-screen bg-[#05070a] p-0 sm:p-3">
+<body class="bg-brandDark text-white antialiased select-none overflow-hidden h-[100dvh] flex flex-col justify-between">
 
-  <!-- Main App Shell (Centered for desktop/tablets, 100% fluid for mobile/TMA) -->
-  <div class="relative w-full max-w-2xl sm:max-w-3xl lg:max-w-4xl h-[100dvh] sm:h-[94vh] bg-app-bg sm:rounded-3xl sm:border sm:border-app-border shadow-2xl overflow-hidden flex flex-col justify-between">
-
-    <!-- BK-Style App Header (Clean, NO fake phone status bar, directly starts app brand) -->
-    <header class="bg-app-dark border-b border-app-border px-3.5 py-2.5 z-30 flex-shrink-0">
-      <div class="flex items-center justify-between">
-        
-        <!-- Left: Hamburger Drawer Trigger -->
-        <button onclick="toggleSideMenu()" class="w-10 h-10 rounded-xl bg-app-card border border-app-border flex items-center justify-center text-white hover:text-mint hover:border-mint/50 transition active:scale-95" title="Меню приложения">
-          <i class="fa-solid fa-bars text-sm"></i>
-        </button>
-
-        <!-- Center: Brand Switcher & Vector Waves Logo -->
-        <div onclick="toggleBrandSelector()" class="flex items-center space-x-2.5 cursor-pointer group px-2 py-1 rounded-xl hover:bg-app-card transition">
-          <div class="w-8 h-8 rounded-lg bg-black border border-mint/40 flex items-center justify-center p-1 group-hover:border-mint transition">
-            <!-- Exact Swirl Croissant Wave Logo vector from photo -->
-            <svg viewBox="0 0 100 100" class="w-full h-full fill-white">
-              <path d="M22,12 C28,12 36,17 38,24 C34,26 28,27 23,23 C20,20 20,16 22,12 Z" />
-              <path d="M12,28 C20,27 34,34 37,45 C32,48 23,47 16,42 C11,37 10,31 12,28 Z" />
-              <path d="M8,49 C18,48 35,55 37,70 C31,73 20,70 12,62 C7,56 6,51 8,49 Z" />
-              <path d="M16,73 C26,72 36,80 34,91 C28,94 18,91 13,84 C10,79 12,74 16,73 Z" />
-            </svg>
-          </div>
-          <div class="text-left">
-            <div class="flex items-center space-x-1">
-              <span id="headerBrandTitle" class="font-black text-xs sm:text-sm tracking-wider uppercase text-white group-hover:text-mint transition">Круассан Кафе</span>
-              <i class="fa-solid fa-chevron-down text-[8px] text-mint"></i>
-            </div>
-            <p id="headerScreenTitle" class="text-[9px] font-bold text-mint-light uppercase tracking-widest leading-none mt-0.5">МЕНЮ</p>
-          </div>
+  <!-- ==================== ШАПКА ПРИЛОЖЕНИЯ ==================== -->
+  <header class="bg-brandDark/95 backdrop-blur-md border-b border-brandBorder px-4 py-3 shrink-0 z-30">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
+      <!-- Логотип бренда -->
+      <div class="flex items-center space-x-2.5 cursor-pointer" onclick="switchBrand()">
+        <div class="w-9 h-9 rounded-xl bg-mint-500/10 border border-mint-500/30 flex items-center justify-center text-mint-400 font-bold text-lg glow-mint">
+          🥐
         </div>
-
-        <!-- Right: Cart Trigger with Count -->
-        <button onclick="openCartModal()" class="relative w-10 h-10 rounded-xl bg-mint text-black font-black flex items-center justify-center transition shadow-mint active:scale-95" title="Корзина">
-          <i class="fa-solid fa-bag-shopping text-sm"></i>
-          <span id="cartCountBadge" class="hidden absolute -top-1.5 -right-1.5 bg-white text-black font-black text-[9px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-app-bg shadow badge-pop">0</span>
-        </button>
-
+        <div>
+          <h1 id="brandTitle" class="text-sm font-extrabold tracking-wider uppercase text-white flex items-center gap-1.5">
+            Круассан Кафе
+            <span class="text-[9px] bg-mint-500/20 text-mint-400 px-1.5 py-0.5 rounded border border-mint-500/30 font-medium">КЛД</span>
+          </h1>
+          <p id="brandSubtitle" class="text-[10px] text-zinc-400 tracking-tight font-medium">Кафе • Кондитерская • Пекарня</p>
+        </div>
       </div>
-    </header>
 
-    <!-- Main Content Canvas (Scrollable) -->
-    <main class="flex-1 overflow-y-auto no-scrollbar relative bg-app-bg pb-24">
+      <!-- Действия: Инфо и Корзина -->
+      <div class="flex items-center space-x-2">
+        <button onclick="openPickupSelectorModal()" class="px-2.5 py-1.5 rounded-lg bg-brandSurface border border-brandBorder text-xs text-zinc-300 hover:text-white flex items-center gap-1.5 transition">
+          <i data-lucide="map-pin" class="w-3.5 h-3.5 text-mint-400"></i>
+          <span class="hidden sm:inline font-medium">Пекарня:</span>
+          <span id="headerPickupName" class="font-bold text-white text-[11px] truncate max-w-[120px]">Ленинский, 83</span>
+        </button>
 
-      <!-- ==================== 1. ЭКРАН: МЕНЮ ==================== -->
-      <section id="tab-menu" class="tab-content active">
-        
-        <!-- Order Mode Toggle (Pickup / Delivery) as in BK screenshot -->
-        <div class="p-3 bg-app-dark border-b border-app-border">
-          <div class="bg-black/60 p-1 rounded-xl flex border border-app-border max-w-md mx-auto">
-            <button id="btnOrderPickup" onclick="setDeliveryMode('pickup')" class="flex-1 py-1.5 text-xs font-black uppercase rounded-lg transition bg-mint text-black shadow flex items-center justify-center space-x-1.5">
-              <i class="fa-solid fa-person-walking text-xs"></i>
-              <span>Самовывоз</span>
-            </button>
-            <button id="btnOrderDelivery" onclick="setDeliveryMode('delivery')" class="flex-1 py-1.5 text-xs font-bold uppercase rounded-lg transition text-zinc-400 hover:text-white flex items-center justify-center space-x-1.5">
-              <i class="fa-solid fa-moped text-xs"></i>
-              <span>Доставка</span>
-            </button>
-          </div>
-
-          <!-- Active branch pill -->
-          <div onclick="switchTab('restaurants')" class="mt-2.5 max-w-md mx-auto flex items-center justify-between bg-app-card border border-mint/30 rounded-xl px-3 py-2 cursor-pointer hover:border-mint transition group">
-            <div class="flex items-center space-x-2.5 min-w-0">
-              <div class="w-7 h-7 rounded-lg bg-mint/10 border border-mint/30 flex items-center justify-center text-mint text-xs flex-shrink-0 group-hover:bg-mint group-hover:text-black transition">
-                <i class="fa-solid fa-location-dot"></i>
-              </div>
-              <div class="truncate">
-                <p id="currentBranchLabel" class="text-[11px] font-black text-white truncate">Ленинский просп., 67Б • Круассан Кафе</p>
-                <p class="text-[9px] text-mint-light font-medium">Открыто до 22:00 • Свежая выпечка и десерты</p>
-              </div>
-            </div>
-            <i class="fa-solid fa-pen text-zinc-400 group-hover:text-mint text-[10px] ml-2"></i>
-          </div>
-        </div>
-
-        <!-- Sticky Horizontal Filter Categories -->
-        <div class="flex space-x-2 overflow-x-auto no-scrollbar px-3 py-2 bg-app-bg/95 sticky top-0 z-20 backdrop-blur-md border-b border-app-border">
-          <button onclick="filterMenuCategory('all')" id="catPill-all" class="cat-chip whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-black bg-mint text-black transition shadow">Все</button>
-          <button onclick="filterMenuCategory('croissants')" id="catPill-croissants" class="cat-chip whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-bold bg-app-card text-zinc-300 hover:text-white transition">🥐 Круассаны</button>
-          <button onclick="filterMenuCategory('desserts')" id="catPill-desserts" class="cat-chip whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-bold bg-app-card text-zinc-300 hover:text-white transition">🍰 Десерты</button>
-          <button onclick="filterMenuCategory('coffee')" id="catPill-coffee" class="cat-chip whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-bold bg-app-card text-zinc-300 hover:text-white transition">☕ Кофе & Чай</button>
-          <button onclick="filterMenuCategory('bakery')" id="catPill-bakery" class="cat-chip whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-bold bg-app-card text-zinc-300 hover:text-white transition">🥖 Киши & Хлеб</button>
-        </div>
-
-        <!-- Search Bar -->
-        <div class="px-3 pt-3">
-          <div class="relative max-w-md mx-auto">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-zinc-500 text-xs"></i>
-            <input id="dishSearchInput" oninput="handleDishSearch()" type="text" placeholder="Поиск по названию или ингредиентам..." class="w-full bg-app-card border border-app-border rounded-xl pl-8 pr-4 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-mint transition">
-          </div>
-        </div>
-
-        <!-- Menu Container (Dynamic Grid: 2 columns mobile, 3 tablet, 4 desktop) -->
-        <div class="p-3 space-y-6" id="menuListingContainer"></div>
-
-      </section>
-
-      <!-- ==================== 2. ЭКРАН: КУПОНЫ ==================== -->
-      <section id="tab-coupons" class="tab-content">
-        <!-- Sub-tabs: ОБЩИЕ / ЛИЧНЫЕ (Burger King layout) -->
-        <div class="bg-app-dark border-b border-app-border p-3">
-          <div class="grid grid-cols-2 gap-2 bg-black/60 p-1 rounded-xl border border-app-border max-w-md mx-auto">
-            <button id="couponBtnGeneral" onclick="switchCouponsType('general')" class="py-2 text-xs font-black uppercase rounded-lg transition bg-mint text-black shadow">Общие (4)</button>
-            <button id="couponBtnPersonal" onclick="switchCouponsType('personal')" class="py-2 text-xs font-bold uppercase rounded-lg transition text-zinc-400 hover:text-white">Личные (2)</button>
-          </div>
-        </div>
-
-        <!-- Grid for Coupons (1 col mobile, 2 cols on wider screens) -->
-        <div class="p-3 max-w-2xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-3" id="couponsListWrapper"></div>
-
-        <!-- Coupon Code Input Box (matches bottom of BK screenshot) -->
-        <div class="mx-3 mt-4 mb-6 max-w-md sm:mx-auto p-3 rounded-2xl bg-app-card border border-app-border flex items-center space-x-2 shadow-lg">
-          <span class="text-[10px] font-black uppercase text-mint-light whitespace-nowrap">НОМЕР КУПОНА</span>
-          <input id="promoCodeInput" type="text" placeholder="НАПР. МЯТА20" class="flex-1 bg-black/70 border border-app-border rounded-lg px-2.5 py-1.5 text-xs text-white uppercase tracking-wider focus:outline-none focus:border-mint">
-          <button onclick="applyManualCoupon()" class="bg-mint hover:bg-mint-light text-black font-black text-xs px-4 py-1.5 rounded-lg uppercase transition active:scale-95 shadow-mint">ОК</button>
-        </div>
-      </section>
-
-      <!-- ==================== 3. ЭКРАН: МОИ ЗАКАЗЫ ==================== -->
-      <section id="tab-orders" class="tab-content">
-        <div class="p-3 bg-app-dark border-b border-app-border text-center">
-          <h2 class="font-black tracking-wider uppercase text-xs text-white">История заказов</h2>
-          <p class="text-[10px] text-zinc-400 mt-0.5">Электронные кассовые чеки и повтор позиций в 1 клик</p>
-        </div>
-
-        <div class="p-3 max-w-2xl mx-auto space-y-3" id="ordersListContainer"></div>
-      </section>
-
-      <!-- ==================== 4. ЭКРАН: РЕСТОРАНЫ (КАРТА) ==================== -->
-      <section id="tab-restaurants" class="tab-content">
-        <div class="p-3 bg-app-dark border-b border-app-border">
-          <div class="flex items-center justify-between mb-2 max-w-md mx-auto">
-            <span class="text-xs font-bold uppercase text-zinc-400">Город сети:</span>
-            <div class="flex items-center space-x-1.5 text-mint-light text-xs font-black">
-              <i class="fa-solid fa-location-dot"></i>
-              <span>Калининград</span>
-            </div>
-          </div>
-
-          <!-- Feature Filters matching BK screenshot -->
-          <div class="grid grid-cols-4 gap-1.5 text-center mt-2 max-w-md mx-auto">
-            <button onclick="filterMapSpots('nearest')" class="bg-app-card border border-mint/50 p-2 rounded-xl flex flex-col items-center">
-              <i class="fa-solid fa-location-crosshairs text-mint text-xs mb-1"></i>
-              <span class="text-[9px] font-black text-white">Ближайший</span>
-            </button>
-            <button onclick="filterMapSpots('open')" class="bg-app-card border border-app-border p-2 rounded-xl flex flex-col items-center">
-              <i class="fa-regular fa-clock text-mint text-xs mb-1"></i>
-              <span class="text-[9px] font-semibold text-zinc-400">Открыто</span>
-            </button>
-            <button onclick="filterMapSpots('wifi')" class="bg-app-card border border-app-border p-2 rounded-xl flex flex-col items-center">
-              <i class="fa-solid fa-wifi text-mint text-xs mb-1"></i>
-              <span class="text-[9px] font-semibold text-zinc-400">Wi-Fi</span>
-            </button>
-            <button onclick="filterMapSpots('takeaway')" class="bg-app-card border border-app-border p-2 rounded-xl flex flex-col items-center">
-              <i class="fa-solid fa-bag-shopping text-mint text-xs mb-1"></i>
-              <span class="text-[9px] font-semibold text-zinc-400">С собой</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 max-w-3xl mx-auto">
-          <!-- Interactive Map Container -->
-          <div class="relative w-full h-64 md:h-80 bg-app-dark rounded-2xl overflow-hidden border border-app-border shadow-lg">
-            <div id="interactiveMap" class="w-full h-full"></div>
-            <div class="absolute bottom-2.5 left-2.5 z-[500] bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-lg border border-mint/40 text-[9px] text-mint-light font-bold flex items-center space-x-1.5">
-              <span class="w-2 h-2 rounded-full bg-mint animate-pulse"></span>
-              <span>Круассан Кафе & Кёнигсберг Бейкери</span>
-            </div>
-          </div>
-
-          <!-- Selected Bakery Branch Bottom Card -->
-          <div class="flex flex-col justify-between bg-app-card rounded-2xl p-4 border border-app-border shadow-xl">
-            <div>
-              <span class="text-[8px] font-black text-mint-light uppercase tracking-widest bg-mint/10 border border-mint/30 px-2 py-0.5 rounded">ВЫБРАННАЯ ТОЧКА</span>
-              <h3 id="selectedBakeryName" class="text-sm font-black text-white mt-2">Круассан Кафе • Ленинский просп., 67Б</h3>
-              <p id="selectedBakeryDesc" class="text-[11px] text-zinc-400 mt-1">Ориентир: гостиница «Калининград» • 180 м от вас</p>
-              
-              <div class="flex flex-col space-y-1.5 text-[10px] text-zinc-300 mt-3 pt-3 border-t border-app-border">
-                <span><i class="fa-regular fa-clock text-mint mr-1.5"></i> 08:00 — 22:00 ежедневно</span>
-                <span><i class="fa-solid fa-wifi text-mint mr-1.5"></i> Free Wi-Fi • Розетки • Свежая посадка</span>
-              </div>
-            </div>
-
-            <button onclick="confirmBakeryBranch()" class="w-full mt-4 bg-mint hover:bg-mint-light text-black font-black py-2.5 rounded-xl uppercase tracking-wider text-xs transition shadow-mint flex items-center justify-center space-x-2 active:scale-95">
-              <i class="fa-solid fa-check"></i>
-              <span>ВЫБРАТЬ РЕСТОРАН ДЛЯ ЗАКАЗА</span>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- ==================== 5. ЭКРАН: АКЦИИ ==================== -->
-      <section id="tab-promos" class="tab-content">
-        <div class="p-3 bg-app-dark border-b border-app-border text-center">
-          <h2 class="font-black tracking-wider uppercase text-xs text-white">Программа лояльности & Акции</h2>
-          <p class="text-[10px] text-mint-light mt-0.5">Круассан Кафе & Кёнигсберг Бейкери</p>
-        </div>
-
-        <div class="p-3 max-w-2xl mx-auto space-y-3.5">
-          <!-- Promo 1: Digital Coffee Stamp Card -->
-          <div class="rounded-2xl bg-app-card border border-app-border p-4 shadow-lg relative overflow-hidden">
-            <div class="flex items-start justify-between">
-              <div>
-                <span class="px-2 py-0.5 rounded text-[8px] font-black uppercase bg-mint text-black">ШТАМП-КАРТА</span>
-                <h3 class="text-sm font-black text-white mt-1.5">Каждый 6-й кофе в подарок!</h3>
-                <p class="text-[11px] text-zinc-400 mt-0.5">Покажите QR-код бариста при покупке любого кофе</p>
-              </div>
-              <div class="w-11 h-11 rounded-2xl bg-mint/10 border border-mint/30 flex items-center justify-center text-2xl">
-                ☕
-              </div>
-            </div>
-
-            <!-- Stamps Row -->
-            <div class="mt-3.5 pt-3 border-t border-app-border flex items-center justify-between">
-              <div class="flex items-center space-x-2">
-                <span class="w-6 h-6 rounded-full bg-mint text-black font-black text-[10px] flex items-center justify-center">✓</span>
-                <span class="w-6 h-6 rounded-full bg-mint text-black font-black text-[10px] flex items-center justify-center">✓</span>
-                <span class="w-6 h-6 rounded-full bg-mint text-black font-black text-[10px] flex items-center justify-center">✓</span>
-                <span class="w-6 h-6 rounded-full bg-mint text-black font-black text-[10px] flex items-center justify-center">✓</span>
-                <span class="w-6 h-6 rounded-full border-2 border-dashed border-mint/60 flex items-center justify-center text-[10px] text-mint">5</span>
-                <span class="w-6 h-6 rounded-full border-2 border-dashed border-zinc-700 flex items-center justify-center text-[10px] text-zinc-600">🎁</span>
-              </div>
-              <button onclick="showToast('QR-код карты гостя #KC-98231 предъявлен')" class="text-xs font-bold text-mint-light hover:underline">Мой QR</button>
-            </div>
-          </div>
-
-          <!-- Promo 2: Evening Discount -->
-          <div class="rounded-2xl bg-app-card border border-app-border p-4 shadow-lg">
-            <div class="flex items-start justify-between">
-              <div>
-                <span class="px-2 py-0.5 rounded text-[8px] font-black uppercase bg-zinc-200 text-black">КАЖДЫЙ ВЕЧЕР</span>
-                <h3 class="text-sm font-black text-white mt-1.5">Вечерняя скидка -30% на витрину</h3>
-                <p class="text-[11px] text-zinc-400 mt-0.5">Действует с 20:00 во всех пекарнях на хлеб и выпечку</p>
-              </div>
-              <div class="w-11 h-11 rounded-2xl bg-app-dark border border-app-border flex items-center justify-center text-2xl">
-                🌙
-              </div>
-            </div>
-            <div class="mt-3 pt-2.5 border-t border-app-border flex justify-between items-center text-[11px]">
-              <span class="text-zinc-500">Автоматически на кассе</span>
-              <span class="font-bold text-mint-light">Ежедневно 20:00 - 22:00</span>
-            </div>
-          </div>
-
-          <!-- Promo 3: Morning Set -->
-          <div class="rounded-2xl bg-app-card border border-app-border p-4 shadow-lg">
-            <div class="flex items-start justify-between">
-              <div>
-                <span class="px-2 py-0.5 rounded text-[8px] font-black uppercase bg-mint text-black">УТРЕННИЙ БРАНЧ</span>
-                <h3 class="text-sm font-black text-white mt-1.5">Французский завтрак: Круассан + Капучино</h3>
-                <p class="text-[11px] text-zinc-400 mt-0.5">Круассан классик + Капучино на миндальном молоке</p>
-              </div>
-              <div class="w-11 h-11 rounded-2xl bg-mint/10 border border-mint/30 flex items-center justify-center text-2xl">
-                🥐
-              </div>
-            </div>
-            <div class="mt-3 pt-2.5 border-t border-app-border flex justify-between items-center">
-              <div>
-                <span class="text-xs text-zinc-500 line-through mr-1.5">380 ₽</span>
-                <span class="text-sm font-black text-mint-light">299 ₽</span>
-              </div>
-              <button onclick="addPromoComboToCart('Французский завтрак (Круассан + Капучино)', 299, 467, 8.9, 25.4, 51.2, '🥐')" class="px-3 py-1.5 rounded-lg bg-mint hover:bg-mint-light text-black text-xs font-black transition active:scale-95 shadow-mint">В корзину</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-    </main>
-
-    <!-- Bottom Navigation Bar (5 tabs matching Burger King screenshot) -->
-    <nav class="bg-app-dark border-t border-app-border px-1 py-1.5 flex justify-around items-center z-30 flex-shrink-0">
-      
-      <!-- Tab 1: Рестораны -->
-      <button onclick="switchTab('restaurants')" id="navTab-restaurants" class="flex flex-col items-center justify-center py-1 px-1 text-zinc-400 hover:text-white transition w-1/5">
-        <i class="fa-solid fa-location-dot text-sm mb-1"></i>
-        <span class="text-[9px] font-bold uppercase tracking-tight">Рестораны</span>
-      </button>
-
-      <!-- Tab 2: Мои заказы -->
-      <button onclick="switchTab('orders')" id="navTab-orders" class="flex flex-col items-center justify-center py-1 px-1 text-zinc-400 hover:text-white transition w-1/5">
-        <i class="fa-solid fa-clock-rotate-left text-sm mb-1"></i>
-        <span class="text-[9px] font-bold uppercase tracking-tight">Мои заказы</span>
-      </button>
-
-      <!-- Tab 3: Меню (Highlighted Primary Tab) -->
-      <button onclick="switchTab('menu')" id="navTab-menu" class="flex flex-col items-center justify-center py-1.5 px-2 bg-mint text-black rounded-xl shadow-mint transition w-1/5">
-        <i class="fa-solid fa-bread-slice text-sm mb-1"></i>
-        <span class="text-[9px] font-black uppercase tracking-tight">Меню</span>
-      </button>
-
-      <!-- Tab 4: Купоны -->
-      <button onclick="switchTab('coupons')" id="navTab-coupons" class="flex flex-col items-center justify-center py-1 px-1 text-zinc-400 hover:text-white transition w-1/5 relative">
-        <i class="fa-solid fa-ticket text-sm mb-1"></i>
-        <span class="text-[9px] font-bold uppercase tracking-tight">Купоны</span>
-        <span class="absolute top-1 right-3.5 w-2 h-2 rounded-full bg-mint shadow-mint"></span>
-      </button>
-
-      <!-- Tab 5: Акции -->
-      <button onclick="switchTab('promos')" id="navTab-promos" class="flex flex-col items-center justify-center py-1 px-1 text-zinc-400 hover:text-white transition w-1/5">
-        <i class="fa-solid fa-percent text-sm mb-1"></i>
-        <span class="text-[9px] font-bold uppercase tracking-tight">Акции</span>
-      </button>
-    </nav>
-
-    <!-- ==================== MODALS & DRAWERS ==================== -->
-
-    <!-- Modal: Dish Details & Customization -->
-    <div id="dishModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div class="bg-app-card w-full max-w-sm rounded-t-3xl sm:rounded-3xl border border-app-border overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-        
-        <!-- Modal Top Visual Banner (Centered Emoji with Mint Glow) -->
-        <div id="modalDishVisualHeader" class="relative w-full h-32 bg-gradient-to-b from-[#142327] to-app-card flex items-center justify-center overflow-hidden border-b border-app-border">
-          <button onclick="closeDishModal()" class="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-black/70 text-zinc-300 hover:text-white flex items-center justify-center text-xs backdrop-blur-md transition">✕</button>
-          
-          <div class="absolute top-3 left-3 z-20">
-            <span id="modalCategoryBadge" class="text-[9px] font-black px-2 py-0.5 rounded-full bg-mint text-black uppercase tracking-wider shadow">КАТЕГОРИЯ</span>
-          </div>
-
-          <div id="modalMediaContainer" class="w-full h-full flex items-center justify-center">
-            <span id="modalDishEmoji" class="text-6xl filter drop-shadow select-none">🥐</span>
-          </div>
-        </div>
-
-        <div class="p-4 overflow-y-auto no-scrollbar space-y-3.5 text-xs">
-          
-          <div>
-            <h3 id="modalDishTitle" class="text-base font-black text-white leading-tight">Название блюда</h3>
-            <p id="modalDishDesc" class="text-zinc-400 text-xs mt-1">Описание блюда</p>
-          </div>
-
-          <!-- Detailed Composition («Из чего сделано») -->
-          <div class="p-3 rounded-2xl bg-app-bg border border-app-border">
-            <div class="font-black text-mint-light text-[11px] uppercase tracking-wider mb-1 flex items-center space-x-1.5">
-              <i class="fa-solid fa-seedling text-mint"></i>
-              <span>Из чего сделано:</span>
-            </div>
-            <p id="modalDishComposition" class="text-zinc-300 leading-relaxed text-xs">Подробный состав блюда...</p>
-          </div>
-
-          <!-- KBJU Matrix -->
-          <div class="p-3 rounded-2xl bg-app-bg border border-app-border">
-            <div class="font-black text-zinc-300 text-[11px] uppercase tracking-wider mb-2 flex items-center justify-between">
-              <span>Пищевая ценность (на порцию):</span>
-              <span class="text-[9px] text-mint-light font-bold">КБЖУ</span>
-            </div>
-            <div class="grid grid-cols-4 gap-2 text-center">
-              <div class="bg-app-card p-2 rounded-xl border border-app-border">
-                <span class="block text-[9px] font-bold text-zinc-400">Калории</span>
-                <span id="modalKbjuKcal" class="block font-black text-xs text-white mt-0.5">0</span>
-                <span class="text-[8px] text-zinc-500">ккал</span>
-              </div>
-              <div class="bg-app-card p-2 rounded-xl border border-app-border">
-                <span class="block text-[9px] font-bold text-zinc-400">Белки</span>
-                <span id="modalKbjuProt" class="block font-black text-xs text-mint-light mt-0.5">0 г</span>
-                <span class="text-[8px] text-zinc-500">белок</span>
-              </div>
-              <div class="bg-app-card p-2 rounded-xl border border-app-border">
-                <span class="block text-[9px] font-bold text-zinc-400">Жиры</span>
-                <span id="modalKbjuFat" class="block font-black text-xs text-amber-400 mt-0.5">0 г</span>
-                <span class="text-[8px] text-zinc-500">жиры</span>
-              </div>
-              <div class="bg-app-card p-2 rounded-xl border border-app-border">
-                <span class="block text-[9px] font-bold text-zinc-400">Углеводы</span>
-                <span id="modalKbjuCarbs" class="block font-black text-xs text-sky-400 mt-0.5">0 г</span>
-                <span class="text-[8px] text-zinc-500">угли</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Portions / Size Choice -->
-          <div>
-            <label class="font-bold text-xs text-zinc-300 block mb-1.5">Размер порции:</label>
-            <div class="grid grid-cols-2 gap-2" id="modalPortionPickers">
-              <button onclick="selectPortionOption(0)" id="portionOpt0" class="p-2.5 rounded-xl border border-mint bg-mint-bgLight text-left">
-                <span class="block font-black text-xs text-white">Стандарт</span>
-                <span class="text-[10px] text-mint-light font-bold" id="portionPriceLabel0">0 ₽</span>
-              </button>
-              <button onclick="selectPortionOption(1)" id="portionOpt1" class="p-2.5 rounded-xl border border-app-border bg-app-bg text-left">
-                <span class="block font-bold text-xs text-zinc-300">Гранд (+30%)</span>
-                <span class="text-[10px] text-zinc-400" id="portionPriceLabel1">+75 ₽</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Add-ons -->
-          <div>
-            <label class="font-bold text-xs text-zinc-300 block mb-1.5">Дополнительно к заказу:</label>
-            <div class="space-y-1.5">
-              <label class="flex items-center justify-between p-2.5 rounded-xl bg-app-bg border border-app-border cursor-pointer hover:border-mint transition">
-                <div class="flex items-center space-x-2.5">
-                  <input type="checkbox" id="extraToppingAlmond" class="rounded text-mint focus:ring-0 w-4 h-4 bg-app-card border-app-border">
-                  <span class="text-xs text-zinc-200">Миндальный франжипан крем</span>
-                </div>
-                <span class="text-xs text-mint-light font-bold">+55 ₽</span>
-              </label>
-              <label class="flex items-center justify-between p-2.5 rounded-xl bg-app-bg border border-app-border cursor-pointer hover:border-mint transition">
-                <div class="flex items-center space-x-2.5">
-                  <input type="checkbox" id="extraToppingChocolate" class="rounded text-mint focus:ring-0 w-4 h-4 bg-app-card border-app-border">
-                  <span class="text-xs text-zinc-200">Бельгийский трюфельный крем</span>
-                </div>
-                <span class="text-xs text-mint-light font-bold">+60 ₽</span>
-              </label>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Modal Bottom Summary & Add Button -->
-        <div class="p-3 bg-app-dark border-t border-app-border flex items-center justify-between">
-          <div class="flex items-center space-x-3 bg-app-bg px-3 py-1.5 rounded-xl border border-app-border">
-            <button onclick="adjustModalCount(-1)" class="text-zinc-400 hover:text-white font-bold text-sm">－</button>
-            <span id="modalItemQuantity" class="text-sm font-black text-white w-4 text-center">1</span>
-            <button onclick="adjustModalCount(1)" class="text-zinc-400 hover:text-white font-bold text-sm">＋</button>
-          </div>
-          <button onclick="commitModalDishToCart()" class="flex-1 ml-3 bg-mint hover:bg-mint-light text-black font-black py-2.5 px-4 rounded-xl text-xs uppercase tracking-wider transition shadow-mint flex items-center justify-center space-x-2 active:scale-95">
-            <span>В КОРЗИНУ</span>
-            <span id="modalAddPriceTag">0 ₽</span>
-          </button>
-        </div>
-
+        <button onclick="openCartModal()" class="relative p-2 rounded-lg bg-mint-500/10 border border-mint-500/30 text-mint-400 hover:bg-mint-500/20 transition">
+          <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+          <span id="cartCountBadge" class="hidden absolute -top-1.5 -right-1.5 bg-mint-400 text-brandDark font-black text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
+        </button>
       </div>
     </div>
+  </header>
 
-    <!-- Modal: Cart & Total KBJU Summary -->
-    <div id="cartModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div class="bg-app-card w-full max-w-sm rounded-t-3xl sm:rounded-3xl border border-app-border overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-        
-        <div class="p-3.5 bg-app-dark border-b border-app-border flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <div class="w-7 h-7 rounded-lg bg-mint/10 border border-mint/40 flex items-center justify-center text-mint text-xs">
-              <i class="fa-solid fa-basket-shopping"></i>
+  <!-- ==================== ОСНОВНОЙ КОНТЕНТ (ЭКРАНЫ) ==================== -->
+  <main class="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar relative w-full max-w-5xl mx-auto pb-20">
+
+    <!-- 1. ЭКРАН: МЕНЮ (ПО УМОЛЧАНИЮ) -->
+    <section id="screen-menu" class="screen-view p-4 space-y-4">
+      <!-- Плашка самовывоза -->
+      <div class="bg-brandCard border border-brandBorder rounded-2xl p-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-mint-500/15 border border-mint-500/30 flex items-center justify-center text-mint-400">
+            <i data-lucide="store" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-mint-400 uppercase tracking-wider">Только самовывоз</span>
+              <span class="text-[10px] bg-zinc-800 text-zinc-400 px-1.5 py-0.2 rounded font-medium">10–15 мин</span>
             </div>
-            <h3 class="font-black text-white uppercase text-xs">Ваш заказ</h3>
-          </div>
-          <button onclick="closeCartModal()" class="w-7 h-7 rounded-full bg-app-bg text-zinc-400 hover:text-white flex items-center justify-center text-xs">✕</button>
-        </div>
-
-        <!-- Total Cart KBJU Widget -->
-        <div class="bg-black/40 px-4 py-2 border-b border-app-border flex items-center justify-between text-[10px]">
-          <span class="text-zinc-400 font-bold uppercase tracking-wider">КБЖУ корзины:</span>
-          <div class="flex items-center space-x-2 text-white font-mono">
-            <span id="cartKcalSum" class="text-mint-light font-bold">0 ккал</span>
-            <span class="text-zinc-600">|</span>
-            <span id="cartMacrosSum" class="text-zinc-300">Б: 0 • Ж: 0 • У: 0</span>
+            <p id="activePickupAddressText" class="text-xs text-white font-semibold mt-0.5 truncate max-w-[200px] sm:max-w-md">
+              г. Калининград, Ленинский пр-т, 83
+            </p>
           </div>
         </div>
+        <button onclick="openPickupSelectorModal()" class="text-xs font-semibold text-mint-400 bg-mint-500/10 hover:bg-mint-500/20 px-3 py-1.5 rounded-lg border border-mint-500/30 transition shrink-0">
+          Выбрать
+        </button>
+      </div>
 
-        <div id="cartItemListings" class="p-3 space-y-2.5 overflow-y-auto no-scrollbar flex-1 text-xs"></div>
+      <!-- Поиск по каталогу -->
+      <div class="relative">
+        <i data-lucide="search" class="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+        <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="Найти круассан, чизкейк, раф..." class="w-full bg-brandCard border border-brandBorder rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-mint-400 transition">
+      </div>
 
-        <!-- Bottom Cost Breakdown & Order Placement -->
-        <div class="p-3.5 bg-app-dark border-t border-app-border space-y-2">
-          <div class="flex justify-between text-xs text-zinc-400">
-            <span>Стоимость блюд:</span>
-            <span id="cartRawSubtotal" class="text-white font-bold">0 ₽</span>
-          </div>
-          <div class="flex justify-between text-xs text-zinc-400">
-            <span>Примененная скидка:</span>
-            <span id="cartDiscountCut" class="text-mint-light font-bold">0 ₽</span>
-          </div>
-          <div class="flex justify-between text-sm font-black text-white pt-1.5 border-t border-app-border">
-            <span>ИТОГО К ОПЛАТЕ:</span>
-            <span id="cartGrandTotal" class="text-mint-light text-base font-extrabold">0 ₽</span>
-          </div>
+      <!-- Горизонтальные категории -->
+      <div class="flex items-center space-x-2 overflow-x-auto no-scrollbar py-1" id="categoryPills">
+        <button onclick="filterCategory('all')" data-cat="all" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-mint-400 text-brandDark transition">Все позиции</button>
+        <button onclick="filterCategory('croissants')" data-cat="croissants" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-brandSurface border border-brandBorder text-zinc-400 hover:text-white transition">🥐 Круассаны</button>
+        <button onclick="filterCategory('desserts')" data-cat="desserts" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-brandSurface border border-brandBorder text-zinc-400 hover:text-white transition">🍰 Десерты</button>
+        <button onclick="filterCategory('coffee')" data-cat="coffee" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-brandSurface border border-brandBorder text-zinc-400 hover:text-white transition">☕ Кофе & Чай</button>
+        <button onclick="filterCategory('bakery')" data-cat="bakery" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-brandSurface border border-brandBorder text-zinc-400 hover:text-white transition">🥖 Киши & Хлеб</button>
+      </div>
 
-          <button onclick="finalizeOrderPlacement()" class="w-full mt-2 bg-mint hover:bg-mint-light text-black font-black py-2.5 rounded-xl uppercase tracking-wider text-xs transition shadow-mint flex items-center justify-center space-x-2 active:scale-95">
-            <i class="fa-solid fa-check"></i>
-            <span>ОФОРМИТЬ ЗАКАЗ</span>
+      <!-- СЕТКА КАТАЛОГА (2 колонки на моб, 3 на планшетах, 4 на десктопе) -->
+      <div id="catalogGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pt-1">
+        <!-- Карточки генерируются скриптом -->
+      </div>
+    </section>
+
+    <!-- 2. ЭКРАН: КУПОНЫ -->
+    <section id="screen-coupons" class="screen-view hidden p-4 space-y-4">
+      <div class="flex rounded-xl bg-brandSurface p-1 border border-brandBorder">
+        <button onclick="switchCouponTab('public')" id="couponTabPublic" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-mint-400 text-brandDark transition">ОБЩИЕ</button>
+        <button onclick="switchCouponTab('personal')" id="couponTabPersonal" class="flex-1 py-1.5 rounded-lg text-xs font-bold text-zinc-400 hover:text-white transition">ЛИЧНЫЕ</button>
+      </div>
+
+      <!-- Поле промокода -->
+      <div class="bg-brandCard border border-brandBorder p-3 rounded-2xl space-y-2">
+        <label class="text-[11px] font-bold tracking-wider uppercase text-zinc-400">Ввести номер купона или промокод</label>
+        <div class="flex gap-2">
+          <input type="text" id="couponCodeInput" placeholder="Например: МЯТА20 или КОФЕ" class="flex-1 bg-brandDark border border-brandBorder rounded-xl px-3 py-2 text-xs text-white uppercase font-bold focus:outline-none focus:border-mint-400 transition">
+          <button onclick="applyManualCoupon()" class="px-5 py-2 bg-mint-400 text-brandDark font-black text-xs rounded-xl hover:bg-mint-500 transition">ОК</button>
+        </div>
+      </div>
+
+      <!-- Список купонов -->
+      <div id="couponsList" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <!-- Генерируется скриптом -->
+      </div>
+    </section>
+
+    <!-- 3. ЭКРАН: МОИ ЗАКАЗЫ -->
+    <section id="screen-orders" class="screen-view hidden p-4 space-y-3">
+      <div class="flex items-center justify-between mb-1">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-400">История заказов (Самовывоз)</h2>
+        <span class="text-xs text-mint-400 font-medium">Обновлено только что</span>
+      </div>
+      <div id="ordersList" class="space-y-3">
+        <!-- Карточки заказов генерируются скриптом -->
+      </div>
+    </section>
+
+    <!-- 4. ЭКРАН: РЕСТОРАНЫ (КАРТА ПЕКАРЕН) -->
+    <section id="screen-restaurants" class="screen-view hidden p-4 space-y-3 flex flex-col h-[calc(100dvh-135px)]">
+      <!-- Фильтры пекарен -->
+      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
+        <button class="px-3 py-1.5 rounded-xl bg-mint-400 text-brandDark font-bold text-xs whitespace-nowrap">Все филиалы (4)</button>
+        <button class="px-3 py-1.5 rounded-xl bg-brandSurface border border-brandBorder text-zinc-400 text-xs whitespace-nowrap">Открыто сейчас</button>
+        <button class="px-3 py-1.5 rounded-xl bg-brandSurface border border-brandBorder text-zinc-400 text-xs whitespace-nowrap">Wi-Fi & Розетки</button>
+      </div>
+
+      <!-- Контейнер интерактивной карты -->
+      <div class="flex-1 w-full rounded-2xl overflow-hidden border border-brandBorder relative min-h-[220px]">
+        <div id="mapContainer" class="w-full h-full"></div>
+      </div>
+
+      <!-- Карточка выбранной точки -->
+      <div id="selectedRestaurantCard" class="bg-brandCard border border-brandBorder p-3.5 rounded-2xl shrink-0 space-y-2">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-mint-400 animate-pulse"></span>
+              <h3 id="resCardName" class="text-sm font-bold text-white">Круассан Кафе — Ленинский</h3>
+            </div>
+            <p id="resCardAddress" class="text-xs text-zinc-400 mt-0.5">г. Калининград, Ленинский пр-т, 83</p>
+          </div>
+          <span id="resCardDistance" class="text-[10px] bg-mint-500/15 border border-mint-500/30 text-mint-400 px-2 py-0.5 rounded-md font-bold">450 м</span>
+        </div>
+
+        <div class="flex items-center justify-between pt-1 border-t border-brandBorder/60">
+          <div class="text-[11px] text-zinc-400">
+            Режим: <span class="text-white font-medium">08:00 – 22:00</span>
+          </div>
+          <button onclick="confirmSelectedBakeryForPickup()" class="px-4 py-2 bg-mint-400 hover:bg-mint-500 text-brandDark font-black text-xs rounded-xl transition flex items-center gap-1.5 shadow-md">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+            ВЫБРАТЬ ДЛЯ ЗАКАЗА
           </button>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Modal: Paper Fiscal Receipt (Matches screenshot 'СМОТРЕТЬ ЧЕК') -->
-    <div id="receiptModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
-      <div class="bg-white text-zinc-900 w-full max-w-xs rounded-2xl overflow-hidden shadow-2xl relative p-5 font-mono text-xs">
-        <button onclick="closeReceiptModal()" class="absolute top-3 right-3 text-zinc-400 hover:text-black font-sans font-bold">✕</button>
-        
-        <div class="text-center pb-3 border-b border-dashed border-zinc-400">
-          <p class="font-extrabold uppercase tracking-widest text-sm text-zinc-950">ООО «КРУАССАН-КАФЕ»</p>
-          <p class="text-[10px] text-zinc-600">Кёнигсберг Бейкери • Калининград</p>
-          <p class="text-[10px] text-zinc-500 mt-0.5" id="receiptTimestamp">23.10.2026 14:22</p>
-          <p class="text-[11px] font-bold text-teal-800 mt-1" id="receiptCodeHeading">КАССОВЫЙ ЧЕК № K-45 [3651]</p>
-        </div>
-
-        <div class="py-3 border-b border-dashed border-zinc-400 space-y-2" id="receiptRowsContainer"></div>
-
-        <div class="pt-2">
-          <div class="flex justify-between text-xs font-bold text-zinc-900">
-            <span>ИТОГ К ОПЛАТЕ:</span>
-            <span id="receiptFinalSum">0.00 ₽</span>
-          </div>
-          <div class="flex justify-between text-[10px] text-zinc-500 mt-0.5">
-            <span>Оплата: СБП / БЕЗНАЛИЧНЫЙ</span>
-            <span>ОДОБРЕНО</span>
-          </div>
-        </div>
-
-        <!-- Receipt Barcode / Fiscal Details -->
-        <div class="mt-4 pt-3 border-t border-dashed border-zinc-400 flex flex-col items-center">
-          <div class="w-full flex justify-center py-1 tracking-widest font-bold text-xs text-zinc-800">
-            ||| | |||| | ||| |||| | || ||| |||| |
-          </div>
-          <span class="text-[9px] text-zinc-500 mt-1">ФН 996044030 • ФД 18402 • СПАСИБО ЗА ЗАКАЗ!</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal: Brand Switcher (Круассан Кафе / Кёнигсберг Бейкери) -->
-    <div id="brandSwitchModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div class="bg-app-card border border-app-border rounded-3xl p-5 w-full max-w-xs space-y-3">
-        <h3 class="font-bold text-white text-xs text-center uppercase tracking-wider">Выберите концепцию</h3>
-        
-        <button onclick="setBrandConcept('croissant')" class="w-full p-3 rounded-2xl bg-app-bg border border-mint flex items-center space-x-3 text-left hover:border-mint-light transition">
-          <div class="w-9 h-9 rounded-xl bg-mint/10 border border-mint/40 flex items-center justify-center text-mint text-base font-black">🥐</div>
+    <!-- 5. ЭКРАН: АКЦИИ -->
+    <section id="screen-promos" class="screen-view hidden p-4 space-y-4">
+      <!-- Карта лояльности -->
+      <div class="bg-gradient-to-br from-[#122826] to-brandCard border border-mint-500/40 p-4 rounded-2xl relative overflow-hidden glow-mint">
+        <div class="flex items-center justify-between mb-3">
           <div>
-            <div class="font-black text-white text-xs uppercase">Круассан Кафе</div>
-            <div class="text-[10px] text-mint-light">Европейские бранчи, десерты, кофе</div>
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-mint-400">Программа лояльности</span>
+            <h3 class="text-base font-black text-white mt-0.5">Каждый 6-й кофе в подарок</h3>
           </div>
-        </button>
-
-        <button onclick="setBrandConcept('koenigsberg')" class="w-full p-3 rounded-2xl bg-app-bg border border-app-border flex items-center space-x-3 text-left hover:border-mint transition">
-          <div class="w-9 h-9 rounded-xl bg-app-card flex items-center justify-center text-zinc-300 text-base font-black">🥖</div>
-          <div>
-            <div class="font-black text-white text-xs uppercase">Кёнигсберг Бейкери</div>
-            <div class="text-[10px] text-zinc-400">Ремесленный подовый хлеб, киши, сэндвичи</div>
-          </div>
-        </button>
-      </div>
-    </div>
-
-    <!-- Side Drawer Menu -->
-    <div id="sideDrawer" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-start">
-      <div class="w-72 bg-app-card h-full p-5 border-r border-app-border flex flex-col justify-between">
-        <div class="space-y-4">
-          <div class="flex items-center justify-between pb-3 border-b border-app-border">
-            <div class="flex items-center space-x-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-mint"></span>
-              <span class="font-black text-xs uppercase text-white tracking-wider">Круассан & Кёнигсберг</span>
-            </div>
-            <button onclick="toggleSideMenu()" class="text-zinc-400 hover:text-white text-xs">✕</button>
-          </div>
-
-          <nav class="space-y-1.5 text-xs font-semibold text-zinc-300">
-            <button onclick="switchTab('menu'); toggleSideMenu();" class="w-full flex items-center space-x-3 p-2.5 rounded-xl hover:bg-app-bg hover:text-mint transition text-left">
-              <i class="fa-solid fa-bread-slice text-mint w-5 text-center"></i>
-              <span>Основное Меню</span>
-            </button>
-            <button onclick="switchTab('coupons'); toggleSideMenu();" class="w-full flex items-center space-x-3 p-2.5 rounded-xl hover:bg-app-bg hover:text-mint transition text-left">
-              <i class="fa-solid fa-ticket text-mint w-5 text-center"></i>
-              <span>Купоны и Промокоды</span>
-            </button>
-            <button onclick="switchTab('orders'); toggleSideMenu();" class="w-full flex items-center space-x-3 p-2.5 rounded-xl hover:bg-app-bg hover:text-mint transition text-left">
-              <i class="fa-solid fa-clock-rotate-left text-mint w-5 text-center"></i>
-              <span>Мои Заказы и Чеки</span>
-            </button>
-            <button onclick="switchTab('restaurants'); toggleSideMenu();" class="w-full flex items-center space-x-3 p-2.5 rounded-xl hover:bg-app-bg hover:text-mint transition text-left">
-              <i class="fa-solid fa-location-dot text-mint w-5 text-center"></i>
-              <span>Пекарни на Карте</span>
-            </button>
-            <button onclick="switchTab('promos'); toggleSideMenu();" class="w-full flex items-center space-x-3 p-2.5 rounded-xl hover:bg-app-bg hover:text-mint transition text-left">
-              <i class="fa-solid fa-percent text-mint w-5 text-center"></i>
-              <span>Штампы и Акции</span>
-            </button>
-          </nav>
+          <div class="w-8 h-8 rounded-full bg-mint-400/20 text-mint-400 flex items-center justify-center font-bold">☕</div>
         </div>
-
-        <div class="pt-4 border-t border-app-border text-[10px] text-zinc-500">
-          <p class="font-bold text-zinc-400">Служба заботы о гостях:</p>
-          <p class="text-mint-light mt-0.5">+7 (4012) 67-67-67</p>
-          <p class="mt-2">г. Калининград • 2026</p>
+        <p class="text-xs text-zinc-300 mb-3">Заказывайте кофе на самовывоз и получайте любимый напиток бесплатно.</p>
+        <div class="flex items-center justify-between gap-1.5">
+          <div class="w-9 h-9 rounded-xl bg-mint-400 text-brandDark font-black flex items-center justify-center text-xs">✓</div>
+          <div class="w-9 h-9 rounded-xl bg-mint-400 text-brandDark font-black flex items-center justify-center text-xs">✓</div>
+          <div class="w-9 h-9 rounded-xl bg-mint-400 text-brandDark font-black flex items-center justify-center text-xs">✓</div>
+          <div class="w-9 h-9 rounded-xl bg-mint-400 text-brandDark font-black flex items-center justify-center text-xs">✓</div>
+          <div class="w-9 h-9 rounded-xl bg-mint-400 text-brandDark font-black flex items-center justify-center text-xs">✓</div>
+          <div class="w-9 h-9 rounded-xl border-2 border-dashed border-mint-400/60 text-mint-400 font-bold flex items-center justify-center text-xs">🎁</div>
         </div>
       </div>
-    </div>
 
-    <!-- Mint Floating Toast Notification -->
-    <div id="toastNotification" class="fixed top-12 left-1/2 transform -translate-x-1/2 z-50 bg-mint text-black px-4 py-2 rounded-full text-xs font-black shadow-mintGlow transition-all duration-300 opacity-0 pointer-events-none flex items-center space-x-2">
-      <i class="fa-solid fa-circle-check"></i>
-      <span id="toastNoticeText">Уведомление</span>
-    </div>
+      <!-- Акционные карточки -->
+      <div class="space-y-3">
+        <div class="bg-brandCard border border-brandBorder rounded-2xl p-4 flex items-center gap-3">
+          <div class="text-3xl p-3 bg-brandSurface rounded-xl">🌙</div>
+          <div class="flex-1">
+            <span class="text-[10px] bg-mint-500/20 text-mint-400 px-2 py-0.5 rounded font-bold uppercase">Скидка 30%</span>
+            <h4 class="text-sm font-bold text-white mt-1">Вечерняя витрина после 20:30</h4>
+            <p class="text-xs text-zinc-400 mt-0.5">На всю свежую слоёную выпечку и десерты при самовывозе.</p>
+          </div>
+        </div>
 
+        <div class="bg-brandCard border border-brandBorder rounded-2xl p-4 flex items-center gap-3">
+          <div class="text-3xl p-3 bg-brandSurface rounded-xl">🥐</div>
+          <div class="flex-1">
+            <span class="text-[10px] bg-mint-500/20 text-mint-400 px-2 py-0.5 rounded font-bold uppercase">Сет дня</span>
+            <h4 class="text-sm font-bold text-white mt-1">Французский завтрак за 330 ₽</h4>
+            <p class="text-xs text-zinc-400 mt-0.5">Классический круассан Фроше + Капучино на обычном или миндальном молоке.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== НИЖНИЙ НАВИГАЦИОННЫЙ БАР ==================== -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-brandDark/95 backdrop-blur-md border-t border-brandBorder z-30 py-1.5 px-2">
+    <div class="max-w-md mx-auto grid grid-cols-5 text-center">
+      <button onclick="navSwitchScreen('restaurants')" class="nav-item py-1 text-zinc-400 hover:text-white flex flex-col items-center gap-1 transition" data-screen="restaurants">
+        <i data-lucide="map-pin" class="w-4 h-4"></i>
+        <span class="text-[9px] font-bold uppercase tracking-wider">Пекарни</span>
+      </button>
+
+      <button onclick="navSwitchScreen('orders')" class="nav-item py-1 text-zinc-400 hover:text-white flex flex-col items-center gap-1 transition" data-screen="orders">
+        <i data-lucide="history" class="w-4 h-4"></i>
+        <span class="text-[9px] font-bold uppercase tracking-wider">Заказы</span>
+      </button>
+
+      <button onclick="navSwitchScreen('menu')" class="nav-item py-1 text-mint-400 flex flex-col items-center gap-1 transition font-bold" data-screen="menu">
+        <div class="w-5 h-5 flex items-center justify-center">
+          <i data-lucide="utensils" class="w-4 h-4 text-mint-400"></i>
+        </div>
+        <span class="text-[9px] font-bold uppercase tracking-wider text-mint-400">Меню</span>
+      </button>
+
+      <button onclick="navSwitchScreen('coupons')" class="nav-item py-1 text-zinc-400 hover:text-white flex flex-col items-center gap-1 transition relative" data-screen="coupons">
+        <i data-lucide="ticket" class="w-4 h-4"></i>
+        <span class="text-[9px] font-bold uppercase tracking-wider">Купоны</span>
+        <span class="w-1.5 h-1.5 rounded-full bg-mint-400 absolute top-1 right-5"></span>
+      </button>
+
+      <button onclick="navSwitchScreen('promos')" class="nav-item py-1 text-zinc-400 hover:text-white flex flex-col items-center gap-1 transition" data-screen="promos">
+        <i data-lucide="percent" class="w-4 h-4"></i>
+        <span class="text-[9px] font-bold uppercase tracking-wider">Акции</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ==================== МОДАЛЬНОЕ ОКНО: ВЫБОР ПЕКАРНИ (САМОВЫВОЗ) ==================== -->
+  <div id="pickupModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
+    <div class="bg-brandCard border border-brandBorder w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-5 space-y-4 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-mint-500/20 text-mint-400 flex items-center justify-center">
+            <i data-lucide="store" class="w-4 h-4"></i>
+          </div>
+          <h3 class="text-sm font-black uppercase tracking-wider text-white">Выберите пекарню для самовывоза</h3>
+        </div>
+        <button onclick="closePickupSelectorModal()" class="text-zinc-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-zinc-400 shrink-0">Заказ будет бережно собран и упакован к вашему приходу. Время готовности ~ 10–15 минут.</p>
+
+      <div class="space-y-2.5 overflow-y-auto no-scrollbar flex-1" id="pickupLocationsList">
+        <!-- Генерируется скриптом -->
+      </div>
+    </div>
   </div>
 
-  <!-- Application Logic -->
+  <!-- ==================== МОДАЛЬНОЕ ОКНО: БЛЮДО (СОСТАВ И КБЖУ) ==================== -->
+  <div id="dishModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-brandCard border border-brandBorder w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
+      <div class="flex justify-between items-start">
+        <div class="w-16 h-16 rounded-2xl bg-brandSurface border border-brandBorder flex items-center justify-center text-4xl glow-mint" id="modalDishEmoji">
+          🥐
+        </div>
+        <button onclick="closeDishModal()" class="text-zinc-400 hover:text-white p-1.5 rounded-lg bg-brandSurface">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div>
+        <div class="flex items-center gap-2">
+          <span id="modalDishCat" class="text-[10px] font-bold uppercase tracking-wider text-mint-400 bg-mint-500/10 px-2 py-0.5 rounded border border-mint-500/20">Круассаны</span>
+          <span id="modalDishWeight" class="text-[10px] text-zinc-400">120 г</span>
+        </div>
+        <h3 id="modalDishTitle" class="text-lg font-black text-white mt-1">Название блюда</h3>
+      </div>
+
+      <!-- КБЖУ бейджи -->
+      <div class="grid grid-cols-4 gap-2 bg-brandDark p-3 rounded-xl border border-brandBorder text-center">
+        <div>
+          <span class="block text-[10px] text-zinc-500 font-bold uppercase">Ккал</span>
+          <span id="modalDishKcal" class="text-xs font-black text-mint-400">340</span>
+        </div>
+        <div>
+          <span class="block text-[10px] text-zinc-500 font-bold uppercase">Белки</span>
+          <span id="modalDishP" class="text-xs font-bold text-white">7.2г</span>
+        </div>
+        <div>
+          <span class="block text-[10px] text-zinc-500 font-bold uppercase">Жиры</span>
+          <span id="modalDishF" class="text-xs font-bold text-white">18.5г</span>
+        </div>
+        <div>
+          <span class="block text-[10px] text-zinc-500 font-bold uppercase">Углев.</span>
+          <span id="modalDishC" class="text-xs font-bold text-white">36.1г</span>
+        </div>
+      </div>
+
+      <!-- Состав -->
+      <div class="space-y-1">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+          <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-mint-400"></i>
+          Из чего сделано (Состав):
+        </h4>
+        <p id="modalDishIngredients" class="text-xs text-zinc-300 leading-relaxed bg-brandSurface/60 p-3 rounded-xl border border-brandBorder">
+          Состав ингредиентов...
+        </p>
+      </div>
+
+      <!-- Кнопка добавления -->
+      <div class="pt-2 flex items-center justify-between border-t border-brandBorder">
+        <div>
+          <span class="text-[10px] text-zinc-500 block uppercase font-bold">Стоимость</span>
+          <span id="modalDishPrice" class="text-lg font-black text-white">0 ₽</span>
+        </div>
+        <button id="modalAddBtn" onclick="addCurrentModalDishToCart()" class="px-6 py-2.5 bg-mint-400 hover:bg-mint-500 text-brandDark font-black text-xs rounded-xl transition shadow-lg flex items-center gap-2">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          ДОБАВИТЬ В ЗАКАЗ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== МОДАЛЬНОЕ ОКНО: КОРЗИНА И ОФОРМЛЕНИЕ ==================== -->
+  <div id="cartModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-brandCard border border-brandBorder w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl p-5 space-y-4 max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-mint-500/20 text-mint-400 flex items-center justify-center">
+            <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-black uppercase tracking-wider text-white">Ваш заказ (Самовывоз)</h3>
+            <p id="cartPickupSubText" class="text-[10px] text-mint-400 font-semibold truncate max-w-[240px]">Ленинский пр-т, 83</p>
+          </div>
+        </div>
+        <button onclick="closeCartModal()" class="text-zinc-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Список товаров -->
+      <div id="cartItemsContainer" class="space-y-2.5 overflow-y-auto no-scrollbar flex-1 pr-1">
+        <!-- Элементы корзины -->
+      </div>
+
+      <!-- Суммарный счетчик КБЖУ корзины -->
+      <div class="bg-brandDark p-2.5 rounded-xl border border-brandBorder shrink-0">
+        <div class="flex items-center justify-between text-[10px] text-zinc-400 uppercase font-bold mb-1">
+          <span>Суммарная пищевая ценность заказа:</span>
+          <span class="text-mint-400" id="cartTotalKcal">0 ккал</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center text-[10px]">
+          <div class="bg-brandSurface py-1 rounded">Белки: <b id="cartTotalP" class="text-white">0г</b></div>
+          <div class="bg-brandSurface py-1 rounded">Жиры: <b id="cartTotalF" class="text-white">0г</b></div>
+          <div class="bg-brandSurface py-1 rounded">Углеводы: <b id="cartTotalC" class="text-white">0г</b></div>
+        </div>
+      </div>
+
+      <!-- Итог и кнопка оформления -->
+      <div class="border-t border-brandBorder pt-3 space-y-2 shrink-0">
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-zinc-400">Способ получения:</span>
+          <span class="text-white font-bold flex items-center gap-1">
+            <i data-lucide="store" class="w-3.5 h-3.5 text-mint-400"></i> Самовывоз (бесплатно)
+          </span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-sm font-bold text-zinc-400 uppercase">Итого к оплате:</span>
+          <span id="cartTotalPrice" class="text-xl font-black text-mint-400">0 ₽</span>
+        </div>
+        <button onclick="checkoutOrder()" class="w-full py-3 bg-mint-400 hover:bg-mint-500 text-brandDark font-black text-xs rounded-xl transition flex items-center justify-center gap-2 tracking-wider uppercase shadow-lg">
+          <i data-lucide="check" class="w-4 h-4"></i>
+          Оформить самовывоз
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== МОДАЛЬНОЕ ОКНО: КАССОВЫЙ ЧЕК ==================== -->
+  <div id="receiptModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white text-zinc-900 w-full max-w-xs rounded-2xl p-5 space-y-3 font-mono text-xs shadow-2xl relative">
+      <div class="text-center border-b border-dashed border-zinc-300 pb-3">
+        <h3 class="font-black text-sm uppercase">КРУАССАН КАФЕ</h3>
+        <p class="text-[10px] text-zinc-600">ООО «Кёнигсберг Бейкери»</p>
+        <p id="receiptAddress" class="text-[10px] text-zinc-600">г. Калининград, Ленинский пр-т, 83</p>
+        <p class="text-[9px] text-zinc-400 mt-1">КАССОВЫЙ ЧЕК / САМОВЫВОЗ</p>
+      </div>
+
+      <div class="flex justify-between text-[11px]">
+        <span id="receiptOrderNum">ЗАКАЗ № K-45</span>
+        <span id="receiptDate">23.10.26 19:42</span>
+      </div>
+
+      <div id="receiptItemsList" class="space-y-1.5 border-y border-dashed border-zinc-300 py-2.5 max-h-48 overflow-y-auto no-scrollbar">
+        <!-- Позиции чека -->
+      </div>
+
+      <div class="flex justify-between items-center font-bold text-sm pt-1">
+        <span>ИТОГО:</span>
+        <span id="receiptTotalAmount">0 ₽</span>
+      </div>
+
+      <div class="text-center pt-2 border-t border-dashed border-zinc-300">
+        <p class="text-[10px] text-zinc-600">Спасибо за заказ в нашей пекарне!</p>
+        <div class="mt-2 text-2xl tracking-widest font-black">||| | ||||| || |||</div>
+      </div>
+
+      <button onclick="closeReceiptModal()" class="w-full mt-2 py-2 bg-zinc-900 text-white rounded-xl text-xs font-sans font-bold">
+        ЗАКРЫТЬ
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT ЛОГИКА ==================== -->
   <script>
-    // --- Telegram Mini App Initialization ---
+    // Инициализация Telegram WebApp
     const tg = window.Telegram?.WebApp;
     if (tg) {
-      try {
-        tg.ready();
-        tg.expand();
-        tg.enableClosingConfirmation?.();
-        if (tg.setHeaderColor) tg.setHeaderColor('#0f141c');
-        if (tg.setBackgroundColor) tg.setBackgroundColor('#05070a');
-      } catch (err) {
-        console.warn('TMA init note:', err);
-      }
+      tg.ready();
+      tg.expand();
+      if (tg.setHeaderColor) tg.setHeaderColor('#0a0d0e');
+      if (tg.setBackgroundColor) tg.setBackgroundColor('#0a0d0e');
     }
 
     function triggerHaptic(type = 'light') {
       try {
         if (tg?.HapticFeedback) {
-          if (type === 'selection') tg.HapticFeedback.selectionChanged();
-          else if (type === 'success') tg.HapticFeedback.notificationOccurred('success');
+          if (type === 'success') tg.HapticFeedback.notificationOccurred('success');
           else tg.HapticFeedback.impactOccurred(type);
         }
       } catch (e) {}
     }
 
-    // --- Application State ---
-    let currentBrand = 'croissant';
-    let currentDeliveryMode = 'pickup';
-    let currentActiveTab = 'menu';
-    let activeCouponsView = 'general';
-    let shoppingCart = [];
-    let appliedCouponDiscount = 0;
-    let leafletMap = null;
-
-    // --- Authentic Menu Data with Ingredients & KBJU ---
-    const fullMenu = {
-      croissants: {
-        title: 'Круассаны и слоёная выпечка',
-        icon: 'fa-solid fa-croissant',
-        items: [
-          {
-            id: 'cr_1',
-            name: 'Круассан Классик Фроше',
-            price: 140,
-            emoji: '🥐',
-            badge: 'ХИТ',
-            desc: 'Классический французский круассан с хрустящей корочкой и воздушными слоями.',
-            ingredients: 'Французское сливочное тесто 82.5%, домашняя закваска, тростниковый сахар.',
-            kbju: { kcal: 382, b: 6.8, j: 21.2, u: 41.5 }
-          },
-          {
-            id: 'cr_2',
-            name: 'Круассан Тюссон с миндалем и вишней',
-            price: 300,
-            emoji: '🍒',
-            badge: 'ФИРМЕННЫЙ',
-            desc: 'Двойная выпечка с миндальным кремом, ягодами вишни и золотистыми лепестками.',
-            ingredients: 'Французский круассан, крем франжипан, вишневое конфи со специями, миндаль.',
-            kbju: { kcal: 420, b: 7.9, j: 24.1, u: 44.8 }
-          },
-          {
-            id: 'cr_3',
-            name: 'Круассан с лососем и рикоттой',
-            price: 455,
-            emoji: '🥑',
-            badge: 'ШЕФ-БРАНЧ',
-            desc: 'Слоеный круассан со слабосоленым балтийским лососем и цитрусовой рикоттой.',
-            ingredients: 'Круассан, слабосоленый балтийский лосось, крем из рикотты с лимоном, огурец.',
-            kbju: { kcal: 365, b: 14.2, j: 18.5, u: 35.1 }
-          },
-          {
-            id: 'cr_4',
-            name: 'Скрембл в круассане с ростбифом',
-            price: 645,
-            emoji: '🥪',
-            badge: 'СЫТНЫЙ',
-            desc: 'Сливочные фермерские яйца, су-вид ростбиф и дижонская горчица в круассане.',
-            ingredients: 'Круассан, фермерские яйца взбитые со сливками, су-вид ростбиф, руккола, горчица.',
-            kbju: { kcal: 450, b: 19.8, j: 24.3, u: 36.0 }
-          },
-          {
-            id: 'cr_5',
-            name: 'Дениш с карамельным персиком',
-            price: 310,
-            emoji: '🍑',
-            badge: 'СЕЗОН',
-            desc: 'Датская корзинка с заварным ванильным кремом и персиком в карамели.',
-            ingredients: 'Слоеное тесто, крем Патисьер с мадагаскарской ванилью, персики в карамели.',
-            kbju: { kcal: 310, b: 5.2, j: 14.4, u: 39.8 }
-          },
-          {
-            id: 'cr_6',
-            name: 'Улитка с корицей и крем-чизом',
-            price: 240,
-            emoji: '🍥',
-            badge: 'ТОП',
-            desc: 'Сливочное тесто с цейлонской корицей и мягкой глазурью из сливочного сыра.',
-            ingredients: 'Масляное слоеное тесто, цейлонская корица, крем-чиз глазурь.',
-            kbju: { kcal: 435, b: 5.8, j: 22.0, u: 53.4 }
-          }
-        ]
-      },
-      desserts: {
-        title: 'Десерты и кондитерская',
-        icon: 'fa-solid fa-cake-candles',
-        items: [
-          {
-            id: 'des_1',
-            name: 'Чизкейк Сан-Себастьян',
-            price: 285,
-            emoji: '🍰',
-            badge: 'БЕСТСЕЛЛЕР',
-            desc: 'Обожженная карамельная корочка и нежная тающая сырная серединка.',
-            ingredients: 'Сливочный сыр Креметте, сливки 33%, яйца, сахарная пудра, семена ванили.',
-            kbju: { kcal: 355, b: 6.2, j: 25.8, u: 24.5 }
-          },
-          {
-            id: 'des_2',
-            name: 'Торт Наполеон с вишней',
-            price: 390,
-            emoji: '🎂',
-            badge: 'КЛАССИКА',
-            desc: 'Тонкие хрустящие коржи с кремом Дипломат и ягодной вишневой прослойкой.',
-            ingredients: 'Коржи ручной раскатки, крем Дипломат на масле, вишневое натуральное кули.',
-            kbju: { kcal: 395, b: 5.4, j: 23.7, u: 40.1 }
-          },
-          {
-            id: 'des_3',
-            name: 'Эклер с бурбонской ванилью',
-            price: 285,
-            emoji: '🍫',
-            badge: 'ФРАНЦИЯ',
-            desc: 'Заварное тесто с кремом Муслин на натуральной мадагаскарской ванили.',
-            ingredients: 'Заварное тесто pâte à choux, крем Муслин с ванилью Бурбон, белая глазурь.',
-            kbju: { kcal: 320, b: 5.1, j: 18.9, u: 32.4 }
-          },
-          {
-            id: 'des_4',
-            name: 'Канеле по-бордоски',
-            price: 115,
-            emoji: '🍮',
-            badge: 'СПЕЦИАЛИТЕТ',
-            desc: 'Карамельная корочка и нежнейшая сердцевина с темным ромом.',
-            ingredients: 'Карамелизованная сахарная корочка, заварное тесто с темным ромом и ванилью.',
-            kbju: { kcal: 290, b: 4.2, j: 5.1, u: 56.8 }
-          }
-        ]
-      },
-      coffee: {
-        title: 'Кофе и напитки',
-        icon: 'fa-solid fa-mug-saucer',
-        items: [
-          {
-            id: 'cof_1',
-            name: 'Раф «Кёнигсбергский марципан»',
-            price: 310,
-            emoji: '☕',
-            badge: 'СИМВОЛ ГОРОДА',
-            desc: 'Плотный кофе со сливками и калининградским запеченным марципаном.',
-            ingredients: 'Двойной эспрессо (100% арабика), сливки 10%, паста из кёнигсбергского марципана, морская соль.',
-            kbju: { kcal: 210, b: 3.8, j: 12.5, u: 20.6 }
-          },
-          {
-            id: 'cof_2',
-            name: 'Капучино на миндальном молоке',
-            price: 240,
-            emoji: '🥛',
-            badge: 'ВЕГАН',
-            desc: 'Шелковистая растительная пенка и деликатный ореховый баланс.',
-            ingredients: 'Эспрессо свежей обжарки, органическое миндальное молоко без добавленного сахара.',
-            kbju: { kcal: 85, b: 2.1, j: 4.2, u: 9.7 }
-          },
-          {
-            id: 'cof_3',
-            name: 'Ванильный флэт уайт',
-            price: 260,
-            emoji: '🥤',
-            badge: 'ЭНЕРГИЯ',
-            desc: 'Яркий кофейный вкус двойного эспрессо с экстрактом ванили.',
-            ingredients: 'Двойной шот эспрессо, цельное молоко, экстракт натуральной мадагаскарской ванили.',
-            kbju: { kcal: 165, b: 6.8, j: 7.2, u: 18.2 }
-          },
-          {
-            id: 'cof_4',
-            name: 'Облепиховый чай с розмарином',
-            price: 290,
-            emoji: '🍵',
-            badge: 'ИММУНИТЕТ',
-            desc: 'Горячий чай со свежей балтийской облепихой, имбирем и розмарином.',
-            ingredients: 'Ягоды балтийской облепихи, корень имбиря, свежий розмарин, натуральный мед.',
-            kbju: { kcal: 78, b: 0.8, j: 1.1, u: 16.2 }
-          }
-        ]
-      },
-      bakery: {
-        title: 'Киши, сэндвичи и ремесленный хлеб',
-        icon: 'fa-solid fa-bread-slice',
-        items: [
-          {
-            id: 'bak_1',
-            name: 'Киш с копченым лососем и брокколи',
-            price: 405,
-            emoji: '🥧',
-            badge: 'СЫТНЫЙ ЛАНЧ',
-            desc: 'Французский пирог с лососем горячего копчения и сырной заливкой.',
-            ingredients: 'Песочное тесто бризе, подкопченный лосось, брокколи, сливочно-сырная заливка, мускатный орех.',
-            kbju: { kcal: 315, b: 12.4, j: 19.3, u: 22.8 }
-          },
-          {
-            id: 'bak_2',
-            name: 'Тартин на дикой ржаной закваске',
-            price: 220,
-            emoji: '🥖',
-            badge: 'БЕЗ ДРОЖЖЕЙ',
-            desc: 'Подовый хлеб 36-часового созревания с хрустящей корочкой.',
-            ingredients: 'Пшеничная мука в/с, ржаная мука, вода, морская соль, 36 часов медленной ферментации.',
-            kbju: { kcal: 220, b: 7.5, j: 1.2, u: 44.9 }
-          },
-          {
-            id: 'bak_3',
-            name: 'Чиабатта с прошутто и песто',
-            price: 340,
-            emoji: '🥨',
-            badge: 'ИТАЛИЯ',
-            desc: 'Хрустящая чиабатта с сыровяленой ветчиной, песто и томатами.',
-            ingredients: 'Воздушная чиабатта, сыровяленая ветчина, томаты конкассе, соус песто из зеленого базилика.',
-            kbju: { kcal: 285, b: 13.1, j: 11.4, u: 32.5 }
-          }
-        ]
-      }
-    };
-
-    // --- Coupons Data ---
-    const couponStore = {
-      general: [
-        {
-          code: 'ВТОРОЙКРУАССАН',
-          title: '2-Й КРУАССАН БЕСПЛАТНО',
-          desc: 'При покупке Круассана Тюссон или с лососем',
-          emoji: '🥐',
-          priceText: '1+1 = 1',
-          tag: 'ТОЛЬКО В ПРИЛОЖЕНИИ',
-          discount: 140
-        },
-        {
-          code: 'РАФДЕНИШ389',
-          title: 'РАФ МАРЦИПАН + ДЕНИШ',
-          desc: 'Авторский марципановый раф и дениш с персиком',
-          emoji: '☕',
-          priceText: '389 ₽',
-          tag: 'СЕТ ДНЯ',
-          discount: 130
-        },
-        {
-          code: 'ЛАНЧКИШ',
-          title: 'КИШ + ОБЛЕПИХОВЫЙ ЧАЙ',
-          desc: 'Киш с копченым лососем и горячий облепиховый чай',
-          emoji: '🥧',
-          priceText: '549 ₽',
-          tag: 'ВЫГОДНЫЙ ОБЕД',
-          discount: 145
-        },
-        {
-          code: 'СЕТЗАВТРАК499',
-          title: 'СЕТ «КЁНИГСБЕРГ УТРО»',
-          desc: 'Скрембл в круассане с ростбифом + Ванильный флэт уайт',
-          emoji: '🥪',
-          priceText: '499 ₽',
-          tag: 'ПРЕМИУМ',
-          discount: 205
-        }
-      ],
-      personal: [
-        {
-          code: 'МЯТА20',
-          title: 'СКИДКА -20% НА ВЕСЬ ЧЕК',
-          desc: 'Персональная скидка на выпечку, десерты и кофе',
-          emoji: '💎',
-          priceText: '-20%',
-          tag: 'ЛИЧНЫЙ КУПОН',
-          discount: 160
-        },
-        {
-          code: 'КАНЕЛЕБОНУС',
-          title: 'КАНЕЛЕ ПО-БОРДОСКИ В ПОДАРОК',
-          desc: 'К любому заказу кофе от 300 рублей',
-          emoji: '🍮',
-          priceText: '0 ₽',
-          tag: 'ПОДАРОК',
-          discount: 115
-        }
-      ]
-    };
-
-    // --- Order History List ---
-    let orderHistoryList = [
-      {
-        code: 'К-45 [3651]',
-        status: 'ВЫДАН',
-        date: '23.10.26 14:15',
-        items: [
-          { name: 'Круассан Тюссон с миндалем и вишней', emoji: '🍒', qty: 1, price: 300, kbju: { kcal: 420, b: 7.9, j: 24.1, u: 44.8 } },
-          { name: 'Раф «Кёнигсбергский марципан»', emoji: '☕', qty: 1, price: 310, kbju: { kcal: 210, b: 3.8, j: 12.5, u: 20.6 } }
-        ],
-        total: 610
-      },
-      {
-        code: 'К-19 [0721]',
-        status: 'ВЫДАН',
-        date: '18.10.26 11:30',
-        items: [
-          { name: 'Круассан с лососем и рикоттой', emoji: '🥑', qty: 1, price: 455, kbju: { kcal: 365, b: 14.2, j: 18.5, u: 35.1 } },
-          { name: 'Капучино на миндальном молоке', emoji: '🥛', qty: 1, price: 240, kbju: { kcal: 85, b: 2.1, j: 4.2, u: 9.7 } }
-        ],
-        total: 695
-      }
-    ];
-
-    // --- Kaliningrad Bakery Locations ---
-    const bakeryBranches = [
-      {
-        name: 'Круассан Кафе • Ленинский просп., 67Б',
-        short: 'Ленинский просп., 67Б',
-        desc: 'Рядом с гостиницей «Калининград» • 180 м от вас',
-        hours: '08:00 — 22:00',
-        lat: 54.7104,
-        lng: 20.5110
-      },
-      {
-        name: 'Кёнигсберг Бейкери • ТЦ Европа, Театральная 30',
-        short: 'ТЦ Европа, Театральная 30',
-        desc: '1 этаж, атриум «Берлин» • 520 м от вас',
-        hours: '09:00 — 22:00',
-        lat: 54.7188,
-        lng: 20.5050
-      },
-      {
-        name: 'Круассан Кафе • Проспект Мира, 41',
-        short: 'Проспект Мира, 41',
-        desc: 'Исторический район Амалиенау • Терраса',
-        hours: '08:00 — 23:00',
-        lat: 54.7212,
-        lng: 20.4820
-      }
-    ];
-
-    // Modal Buffers
-    let activeModalItem = null;
-    let modalItemCount = 1;
-    let modalItemBasePrice = 140;
-
-    // --- Initialization ---
-    window.addEventListener('DOMContentLoaded', () => {
-      renderAllMenu();
-      renderCouponsList();
-      renderOrdersHistory();
-      refreshCartVisuals();
-    });
-
-    // --- Screen / Tab Switcher ---
-    function switchTab(tabId) {
+    // Бренды
+    let currentBrand = 'croissant'; // 'croissant' | 'koenigs'
+    function switchBrand() {
       triggerHaptic('selection');
-      currentActiveTab = tabId;
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      const target = document.getElementById(`tab-${tabId}`);
-      if (target) target.classList.add('active');
+      currentBrand = (currentBrand === 'croissant') ? 'koenigs' : 'croissant';
+      const titleEl = document.getElementById('brandTitle');
+      const subEl = document.getElementById('brandSubtitle');
+      if (currentBrand === 'croissant') {
+        titleEl.innerHTML = `Круассан Кафе <span class="text-[9px] bg-mint-500/20 text-mint-400 px-1.5 py-0.5 rounded border border-mint-500/30 font-medium">КЛД</span>`;
+        subEl.innerText = 'Кафе • Кондитерская • Пекарня';
+      } else {
+        titleEl.innerHTML = `Кёнигсберг Бейкери <span class="text-[9px] bg-mint-500/20 text-mint-400 px-1.5 py-0.5 rounded border border-mint-500/30 font-medium">1895</span>`;
+        subEl.innerText = 'Ремесленная пекарня и кондитерская';
+      }
+    }
 
-      const tabs = ['restaurants', 'orders', 'menu', 'coupons', 'promos'];
-      tabs.forEach(t => {
-        const btn = document.getElementById(`navTab-${t}`);
-        if (!btn) return;
-        if (t === tabId) {
-          btn.className = 'flex flex-col items-center justify-center py-1.5 px-2 bg-mint text-black rounded-xl shadow-mint transition w-1/5 scale-105';
-          btn.querySelector('span').classList.add('font-black');
-        } else {
-          btn.className = 'flex flex-col items-center justify-center py-1 px-1 text-zinc-400 hover:text-white transition w-1/5';
-          btn.querySelector('span').classList.remove('font-black');
-        }
+    // Список пекарен для самовывоза (Калининград)
+    const pickupBakeries = [
+      { id: 1, name: 'Круассан Кафе — Ленинский', address: 'г. Калининград, Ленинский пр-т, 83', distance: '450 м', hours: '08:00 – 22:00', coords: [54.7104, 20.5101] },
+      { id: 2, name: 'Кёнигсберг Бейкери — ТЦ Европа', address: 'г. Калининград, ул. Театральная, 30', distance: '1.1 км', hours: '09:00 – 22:00', coords: [54.7188, 20.5005] },
+      { id: 3, name: 'Круассан Кафе — Багратиона', address: 'г. Калининград, ул. Багратиона, 102', distance: '2.4 км', hours: '08:00 – 21:00', coords: [54.6975, 20.5050] },
+      { id: 4, name: 'Кёнигсберг Бейкери — Верхнее Озеро', address: 'г. Калининград, ул. Верхнеозёрная, 2А', distance: '3.6 км', hours: '08:30 – 22:00', coords: [54.7320, 20.5260] }
+    ];
+
+    let activePickupId = 1;
+
+    // База данных меню (с аутентичными составами и КБЖУ)
+    const dishes = [
+      {
+        id: 101,
+        category: 'croissants',
+        name: 'Круассан Классик Фроше',
+        emoji: '🥐',
+        price: 140,
+        weight: '65 г',
+        kcal: 260, p: 5.2, f: 14.1, c: 28.4,
+        ingredients: 'Французская пшеничная мука высшего сорта Т55, натуральное сливочное масло 82.5%, закваска, тростниковый сахар, морская соль.'
+      },
+      {
+        id: 102,
+        category: 'croissants',
+        name: 'Круассан Тюссон с вишней',
+        emoji: '🍒',
+        price: 300,
+        weight: '140 г',
+        kcal: 385, p: 6.4, f: 18.2, c: 49.0,
+        ingredients: 'Слоёное круассанное тесто, томленая вишня с корицей, миндальный крем франжипан, лепестки калифорнийского миндаля, пудра.'
+      },
+      {
+        id: 103,
+        category: 'croissants',
+        name: 'Круассан с лососем и рикоттой',
+        emoji: '🥑',
+        price: 455,
+        weight: '190 г',
+        kcal: 420, p: 18.2, f: 22.4, c: 36.5,
+        ingredients: 'Свежевыпеченный круассан, слабосоленый балтийский лосось, крем-рикотта с цедрой сицилийского лимона, свежий огурец, салат руккола.'
+      },
+      {
+        id: 104,
+        category: 'croissants',
+        name: 'Скрембл в круассане с ростбифом',
+        emoji: '🥪',
+        price: 645,
+        weight: '230 г',
+        kcal: 540, p: 28.5, f: 31.0, c: 37.2,
+        ingredients: 'Воздушный круассан, сливочный скрэмбл из фермерских яиц, мраморный запеченный ростбиф, трюфельный соус, томаты черри, микрозелень.'
+      },
+      {
+        id: 105,
+        category: 'croissants',
+        name: 'Дениш с карамельным персиком',
+        emoji: '🍑',
+        price: 380,
+        weight: '135 г',
+        kcal: 330, p: 4.8, f: 15.6, c: 42.1,
+        ingredients: 'Слоёное сдобное тесто, заварной ванильный крем Патисьер, половинки карамелизированного персика, фисташковая крошка.'
+      },
+      {
+        id: 106,
+        category: 'desserts',
+        name: 'Чизкейк Сан-Себастьян',
+        emoji: '🍰',
+        price: 285,
+        weight: '160 г',
+        kcal: 460, p: 9.1, f: 32.5, c: 31.8,
+        ingredients: 'Сливочный сыр Креметте, пастеризованные сливки 33%, желтки фермерских яиц, тростниковый сахар, натуральная мадагаскарская ваниль.'
+      },
+      {
+        id: 107,
+        category: 'desserts',
+        name: 'Наполеон с вишневым конфи',
+        emoji: '🎂',
+        price: 390,
+        weight: '175 г',
+        kcal: 410, p: 6.2, f: 24.3, c: 41.5,
+        ingredients: 'Тончайшие хрустящие коржи из рубленого слоёного теста, заварной крем Дипломат на бурбонской ванили, прослойка вишневого конфитюра.'
+      },
+      {
+        id: 108,
+        category: 'desserts',
+        name: 'Эклер с бурбонской ванилью',
+        emoji: '🍫',
+        price: 285,
+        weight: '85 г',
+        kcal: 290, p: 5.1, f: 16.8, c: 29.4,
+        ingredients: 'Заварное тесто шу, нежный крем на основе маскарпоне и ванили Таити, глазурь из белого бельгийского шоколада.'
+      },
+      {
+        id: 109,
+        category: 'coffee',
+        name: 'Раф «Кёнигсбергский марципан»',
+        emoji: '☕',
+        price: 310,
+        weight: '350 мл',
+        kcal: 280, p: 4.5, f: 14.8, c: 31.0,
+        ingredients: 'Двойной эспрессо (100% арабика Бразилия Суль-де-Минас), взбитые 11% сливки, домашняя паста из калининградского марципана, щепотка морской соли.'
+      },
+      {
+        id: 110,
+        category: 'coffee',
+        name: 'Капучино на миндальном молоке',
+        emoji: '🥛',
+        price: 240,
+        weight: '300 мл',
+        kcal: 115, p: 3.2, f: 5.8, c: 12.4,
+        ingredients: 'Эспрессо спешелти обжарки, растительное безлактозное миндальное молоко, шелковистая плотная микропена.'
+      },
+      {
+        id: 111,
+        category: 'coffee',
+        name: 'Облепиховый чай с розмарином',
+        emoji: '🍵',
+        price: 290,
+        weight: '450 мл',
+        kcal: 95, p: 0.8, f: 1.2, c: 20.1,
+        ingredients: 'Свежая протертая облепиха, сибирский мед, веточка свежего розмарина, слайсы корня имбиря, бадьян.'
+      },
+      {
+        id: 112,
+        category: 'bakery',
+        name: 'Киш с лососем и брокколи',
+        emoji: '🥧',
+        price: 405,
+        weight: '210 г',
+        kcal: 480, p: 21.0, f: 27.5, c: 36.0,
+        ingredients: 'Песочная основа на сливочном масле, начинка из филе подкопченного лосося, соцветий брокколи, сливочно-сырной заливки и мускатного ореха.'
+      },
+      {
+        id: 113,
+        category: 'bakery',
+        name: 'Ржаной тартин на закваске',
+        emoji: '🥖',
+        price: 290,
+        weight: '500 г',
+        kcal: 210, p: 7.5, f: 1.5, c: 41.2,
+        ingredients: 'Цельнозерновая ржаная и пшеничная мука, 24-часовая живая закваска, артезианская вода, морская соль, семена тыквы и льна.'
+      },
+      {
+        id: 114,
+        category: 'bakery',
+        name: 'Чиабатта с прошутто и песто',
+        emoji: '🥨',
+        price: 340,
+        weight: '185 г',
+        kcal: 395, p: 16.4, f: 17.0, c: 43.5,
+        ingredients: 'Хрустящая пышная чиабатта с крупными порами, пармская ветчина (прошутто крудо), базиликовый соус песто, сыр моцарелла, вяленые томаты.'
+      }
+    ];
+
+    // Купоны (как на скриншотах БК, адаптированные под пекарню)
+    const coupons = [
+      { id: 'c1', code: 'МЯТА20', name: 'Скидка 20% на весь заказ', desc: 'При заказе любого круассана и кофе', discount: 20, type: 'public', emoji: '🥐' },
+      { id: 'c2', code: 'КОФЕ', name: 'Второй напиток бесплатно', desc: 'При заказе любого авторского рафа', discount: 50, type: 'public', emoji: '☕' },
+      { id: 'c3', code: '2ДЕСЕРТА', name: '2 Наполеона за 599 ₽', desc: 'Вместо 780 ₽ при самовывозе', discount: 23, type: 'public', emoji: '🍰' },
+      { id: 'c4', code: 'VIPКЛД', name: 'Персональная скидка 25%', desc: 'Эксклюзивный купон для резидентов Клуба', discount: 25, type: 'personal', emoji: '👑' }
+    ];
+
+    // История заказов (по образцу БК)
+    let myOrders = [
+      {
+        id: 'K-45',
+        pin: '3651',
+        date: '23.10.26 18:39',
+        status: 'ВЫДАН',
+        bakeryName: 'Круассан Кафе — Ленинский',
+        items: [
+          { name: 'Круассан Классик Фроше', qty: 1, price: 140 },
+          { name: 'Раф «Кёнигсбергский марципан»', qty: 1, price: 310 }
+        ],
+        total: 450
+      },
+      {
+        id: 'K-19',
+        pin: '0721',
+        date: '21.10.26 13:28',
+        status: 'ВЫДАН',
+        bakeryName: 'Кёнигсберг Бейкери — ТЦ Европа',
+        items: [
+          { name: 'Чизкейк Сан-Себастьян', qty: 2, price: 285 }
+        ],
+        total: 570
+      }
+    ];
+
+    // Корзина
+    let cart = [];
+    let currentModalDish = null;
+
+    // ==================== РЕНДЕР КАТАЛОГА (СЕТКА) ====================
+    let currentCategoryFilter = 'all';
+    let searchQuery = '';
+
+    function renderCatalog() {
+      const grid = document.getElementById('catalogGrid');
+      grid.innerHTML = '';
+
+      const filtered = dishes.filter(item => {
+        const matchCat = (currentCategoryFilter === 'all') || (item.category === currentCategoryFilter);
+        const matchSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            item.ingredients.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchCat && matchSearch;
       });
 
-      const titleMap = {
-        menu: 'МЕНЮ',
-        coupons: 'КУПОНЫ',
-        orders: 'МОИ ЗАКАЗЫ',
-        restaurants: 'РЕСТОРАНЫ',
-        promos: 'АКЦИИ'
-      };
-      document.getElementById('headerScreenTitle').textContent = titleMap[tabId] || 'ПРИЛОЖЕНИЕ';
-
-      if (tabId === 'restaurants') {
-        setTimeout(initLeafletMapInstance, 150);
-      }
-    }
-
-    // --- Visual Media Renderer (Centered Emojis with Glow) ---
-    function renderDishVisualMedia(item) {
-      return `
-        <div class="w-full h-full media-placeholder-glow flex items-center justify-center select-none transition-transform duration-300 group-hover:scale-110">
-          <span class="text-4xl sm:text-5xl filter drop-shadow">${item.emoji || '🥐'}</span>
-        </div>
-      `;
-    }
-
-    // --- Menu Rendering (Grid Mode: 2 cols on mobile, 3 tablet, 4 desktop) ---
-    function renderAllMenu() {
-      const container = document.getElementById('menuListingContainer');
-      let html = '';
-
-      for (const catKey in fullMenu) {
-        const cat = fullMenu[catKey];
-        html += `
-          <div id="sectionCat-${catKey}" class="menu-section-block">
-            <div class="flex items-center justify-between mb-3 pb-1 border-b border-app-border">
-              <h2 class="text-xs sm:text-sm font-black tracking-wider uppercase text-white flex items-center">
-                <span class="w-1.5 h-3.5 bg-mint rounded-sm mr-2 inline-block"></span>
-                <i class="${cat.icon} text-mint mr-1.5 text-xs"></i>
-                ${cat.title}
-              </h2>
-              <span class="text-[9px] font-black text-mint-light tracking-widest uppercase">${cat.items.length} ПОЗИЦИИ</span>
-            </div>
-
-            <!-- Responsive Catalog Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
-              ${cat.items.map(item => createDishCardElement(item, catKey)).join('')}
-            </div>
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-12 text-center text-zinc-500">
+            <p class="text-3xl mb-2">🔍</p>
+            <p class="text-xs font-bold">Ничего не найдено</p>
+            <p class="text-[11px] text-zinc-600 mt-1">Попробуйте изменить поисковый запрос</p>
           </div>
         `;
+        return;
       }
-      container.innerHTML = html;
-    }
 
-    function createDishCardElement(item, catKey) {
-      return `
-        <div onclick="openDishModal('${item.id}', '${catKey}')" class="bg-app-card border border-app-border hover:border-mint/60 rounded-2xl overflow-hidden transition-all duration-200 cursor-pointer group active:scale-[0.98] shadow-card flex flex-col justify-between">
-          
+      filtered.forEach(item => {
+        const card = document.createElement('div');
+        card.className = "bg-brandCard border border-brandBorder rounded-2xl p-3 flex flex-col justify-between hover:border-mint-500/50 transition group";
+        card.innerHTML = `
           <div>
-            <!-- Card Emoji Container (Clean centered visual, no camera buttons) -->
-            <div class="relative w-full aspect-square bg-[#0c1015] border-b border-app-border/70 overflow-hidden">
-              ${renderDishVisualMedia(item)}
-
-              <!-- Badge -->
-              ${item.badge ? `
-                <div class="absolute top-2 left-2 z-10">
-                  <span class="text-[8px] font-black uppercase px-1.5 py-0.5 rounded-md bg-mint text-black tracking-wider shadow">${item.badge}</span>
-                </div>
-              ` : ''}
+            <!-- Зона с крупным эмодзи -->
+            <div onclick="openDishModal(${item.id})" class="cursor-pointer w-full aspect-square rounded-xl bg-brandSurface border border-brandBorder flex items-center justify-center text-4xl mb-2.5 transition transform group-hover:scale-[1.02] shadow-inner relative">
+              <span>${item.emoji}</span>
+              <span class="absolute top-2 right-2 text-[9px] bg-brandDark/80 border border-brandBorder px-1.5 py-0.5 rounded text-zinc-400 font-bold">${item.weight}</span>
             </div>
 
-            <!-- Content Area -->
-            <div class="p-2.5 sm:p-3">
-              <div class="flex items-start justify-between gap-1">
-                <h4 class="text-xs font-black text-white group-hover:text-mint transition leading-snug line-clamp-2">${item.name}</h4>
-              </div>
-
-              <!-- Ingredients («Из чего сделано») -->
-              <p class="text-[10px] text-zinc-400 mt-1.5 line-clamp-2 leading-relaxed">
-                <span class="text-mint-light font-semibold">Состав:</span> ${item.ingredients}
-              </p>
+            <!-- Заголовок и цена -->
+            <div onclick="openDishModal(${item.id})" class="cursor-pointer">
+              <h4 class="text-xs font-black text-white line-clamp-1 group-hover:text-mint-400 transition">${item.name}</h4>
+              <p class="text-[10px] text-zinc-400 line-clamp-2 mt-1 leading-snug">${item.ingredients}</p>
             </div>
           </div>
 
-          <!-- Bottom: Price, KBJU & Add Button -->
-          <div class="p-2.5 sm:p-3 pt-0">
-            <!-- KBJU Micro Metrics -->
-            <div class="flex items-center justify-between py-1.5 px-2 rounded-lg bg-app-bg/80 border border-app-border/60 text-[8px] font-mono text-zinc-300 mb-2">
-              <span class="text-white font-bold">${item.kbju.kcal} ккал</span>
-              <span class="text-mint-light">Б:${item.kbju.b}</span>
-              <span class="text-amber-300">Ж:${item.kbju.j}</span>
-              <span class="text-sky-300">У:${item.kbju.u}</span>
+          <!-- Нижняя панель карточки (КБЖУ + Кнопка добавления) -->
+          <div class="mt-3 pt-2 border-t border-brandBorder/60 flex items-center justify-between">
+            <div>
+              <span class="text-[9px] text-zinc-500 block uppercase font-bold">${item.kcal} ккал</span>
+              <span class="text-xs font-black text-mint-400">${item.price} ₽</span>
             </div>
-
-            <div class="flex items-center justify-between">
-              <span class="font-black text-xs sm:text-sm text-mint-light">${item.price} ₽</span>
-              <button onclick="event.stopPropagation(); quickAddDish('${item.id}', '${catKey}')" class="px-2.5 py-1.5 rounded-lg bg-mint hover:bg-mint-light text-black font-black text-[10px] uppercase tracking-wider transition shadow-mint active:scale-95 flex items-center space-x-1">
-                <i class="fa-solid fa-plus text-[9px]"></i>
-                <span class="hidden xs:inline">В КОРЗИНУ</span>
-              </button>
-            </div>
+            <button onclick="addToCart(${item.id}); event.stopPropagation();" class="w-7 h-7 rounded-lg bg-mint-500/15 border border-mint-500/30 text-mint-400 hover:bg-mint-400 hover:text-brandDark flex items-center justify-center transition">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+            </button>
           </div>
+        `;
+        grid.appendChild(card);
+      });
 
-        </div>
-      `;
+      lucide.createIcons();
     }
 
-    function filterMenuCategory(catKey) {
+    function filterCategory(cat) {
       triggerHaptic('selection');
-      document.querySelectorAll('.cat-chip').forEach(btn => {
-        btn.className = 'cat-chip whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-bold bg-app-card text-zinc-300 hover:text-white transition';
-      });
-      const selected = document.getElementById(`catPill-${catKey}`);
-      if (selected) selected.className = 'cat-chip whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-black bg-mint text-black transition shadow';
-
-      const categories = ['croissants', 'desserts', 'coffee', 'bakery'];
-      categories.forEach(c => {
-        const el = document.getElementById(`sectionCat-${c}`);
-        if (!el) return;
-        el.style.display = (catKey === 'all' || catKey === c) ? 'block' : 'none';
-      });
-    }
-
-    function handleDishSearch() {
-      const q = document.getElementById('dishSearchInput').value.toLowerCase().trim();
-      const categories = ['croissants', 'desserts', 'coffee', 'bakery'];
-
-      categories.forEach(c => {
-        const sec = document.getElementById(`sectionCat-${c}`);
-        if (!sec) return;
-        const filtered = fullMenu[c].items.filter(it => 
-          it.name.toLowerCase().includes(q) || 
-          it.desc.toLowerCase().includes(q) || 
-          it.ingredients.toLowerCase().includes(q)
-        );
-        const listDiv = sec.querySelector('.grid');
-        if (listDiv) {
-          listDiv.innerHTML = filtered.map(item => createDishCardElement(item, c)).join('');
+      currentCategoryFilter = cat;
+      document.querySelectorAll('.cat-pill').forEach(btn => {
+        if (btn.getAttribute('data-cat') === cat) {
+          btn.className = "cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-mint-400 text-brandDark transition";
+        } else {
+          btn.className = "cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-brandSurface border border-brandBorder text-zinc-400 hover:text-white transition";
         }
-        sec.style.display = (filtered.length > 0 || q === '') ? 'block' : 'none';
       });
+      renderCatalog();
     }
 
-    // --- Dish Customization Modal ---
-    function openDishModal(dishId, catKey) {
+    function handleSearch(val) {
+      searchQuery = val;
+      renderCatalog();
+    }
+
+    // ==================== МОДАЛЬНОЕ ОКНО БЛЮДА ====================
+    function openDishModal(id) {
       triggerHaptic('light');
-      const item = fullMenu[catKey].items.find(x => x.id === dishId);
+      const item = dishes.find(d => d.id === id);
       if (!item) return;
+      currentModalDish = item;
 
-      activeModalItem = { ...item, catKey };
-      modalItemCount = 1;
-      modalItemBasePrice = item.price;
+      document.getElementById('modalDishEmoji').innerText = item.emoji;
+      document.getElementById('modalDishTitle').innerText = item.name;
+      document.getElementById('modalDishWeight').innerText = item.weight;
+      document.getElementById('modalDishIngredients').innerText = item.ingredients;
+      document.getElementById('modalDishKcal').innerText = item.kcal;
+      document.getElementById('modalDishP').innerText = `${item.p}г`;
+      document.getElementById('modalDishF').innerText = `${item.f}г`;
+      document.getElementById('modalDishC').innerText = `${item.c}г`;
+      document.getElementById('modalDishPrice').innerText = `${item.price} ₽`;
 
-      document.getElementById('modalDishEmoji').textContent = item.emoji || '🥐';
-      document.getElementById('modalDishTitle').textContent = item.name;
-      document.getElementById('modalDishDesc').textContent = item.desc;
-      document.getElementById('modalCategoryBadge').textContent = fullMenu[catKey].title;
-      document.getElementById('modalDishComposition').textContent = item.ingredients;
-      
-      document.getElementById('modalKbjuKcal').textContent = item.kbju.kcal;
-      document.getElementById('modalKbjuProt').textContent = `${item.kbju.b} г`;
-      document.getElementById('modalKbjuFat').textContent = `${item.kbju.j} г`;
-      document.getElementById('modalKbjuCarbs').textContent = `${item.kbju.u} г`;
+      const catNames = { croissants: 'Круассаны', desserts: 'Десерты', coffee: 'Кофе & Чай', bakery: 'Киши & Хлеб' };
+      document.getElementById('modalDishCat').innerText = catNames[item.category] || 'Пекарня';
 
-      document.getElementById('portionPriceLabel0').textContent = `${item.price} ₽`;
-      document.getElementById('modalItemQuantity').textContent = '1';
-      document.getElementById('extraToppingAlmond').checked = false;
-      document.getElementById('extraToppingChocolate').checked = false;
-
-      selectPortionOption(0);
-      recalculateModalTotal();
       document.getElementById('dishModal').classList.remove('hidden');
+      lucide.createIcons();
     }
 
     function closeDishModal() {
       document.getElementById('dishModal').classList.add('hidden');
     }
 
-    function selectPortionOption(idx) {
-      triggerHaptic('selection');
-      const p0 = document.getElementById('portionOpt0');
-      const p1 = document.getElementById('portionOpt1');
-      if (idx === 0) {
-        p0.className = 'p-2.5 rounded-xl border border-mint bg-mint-bgLight text-left';
-        p1.className = 'p-2.5 rounded-xl border border-app-border bg-app-bg text-left';
-        modalItemBasePrice = activeModalItem.price;
-      } else {
-        p1.className = 'p-2.5 rounded-xl border border-mint bg-mint-bgLight text-left';
-        p0.className = 'p-2.5 rounded-xl border border-app-border bg-app-bg text-left';
-        modalItemBasePrice = activeModalItem.price + 75;
+    function addCurrentModalDishToCart() {
+      if (currentModalDish) {
+        addToCart(currentModalDish.id);
+        closeDishModal();
       }
-      recalculateModalTotal();
     }
 
-    function adjustModalCount(delta) {
-      triggerHaptic('light');
-      modalItemCount = Math.max(1, modalItemCount + delta);
-      document.getElementById('modalItemQuantity').textContent = modalItemCount;
-      recalculateModalTotal();
-    }
-
-    function recalculateModalTotal() {
-      let add = 0;
-      if (document.getElementById('extraToppingAlmond')?.checked) add += 55;
-      if (document.getElementById('extraToppingChocolate')?.checked) add += 60;
-      const total = (modalItemBasePrice + add) * modalItemCount;
-      document.getElementById('modalAddPriceTag').textContent = `${total} ₽`;
-    }
-
-    document.addEventListener('change', (e) => {
-      if (e.target && (e.target.id === 'extraToppingAlmond' || e.target.id === 'extraToppingChocolate')) {
-        triggerHaptic('selection');
-        recalculateModalTotal();
-      }
-    });
-
-    function commitModalDishToCart() {
-      if (!activeModalItem) return;
-      triggerHaptic('success');
-      let extras = [];
-      let extraSum = 0;
-      if (document.getElementById('extraToppingAlmond').checked) {
-        extras.push('Миндальный крем');
-        extraSum += 55;
-      }
-      if (document.getElementById('extraToppingChocolate').checked) {
-        extras.push('Трюфельный крем');
-        extraSum += 60;
-      }
-
-      const finalPrice = modalItemBasePrice + extraSum;
-      const title = extras.length > 0 ? `${activeModalItem.name} (+${extras.join(', ')})` : activeModalItem.name;
-
-      shoppingCart.push({
-        id: Date.now(),
-        name: title,
-        emoji: activeModalItem.emoji,
-        price: finalPrice,
-        qty: modalItemCount,
-        kbju: activeModalItem.kbju
-      });
-
-      closeDishModal();
-      refreshCartVisuals();
-      showToast(`Добавлено: ${activeModalItem.name}`);
-    }
-
-    function quickAddDish(dishId, catKey) {
-      triggerHaptic('light');
-      const item = fullMenu[catKey].items.find(x => x.id === dishId);
+    // ==================== КОРЗИНА И КБЖУ ====================
+    function addToCart(id) {
+      triggerHaptic('medium');
+      const item = dishes.find(d => d.id === id);
       if (!item) return;
 
-      shoppingCart.push({
-        id: Date.now(),
-        name: item.name,
-        emoji: item.emoji,
-        price: item.price,
-        qty: 1,
-        kbju: item.kbju
-      });
-      refreshCartVisuals();
-      showToast(`Добавлено: ${item.name}`);
+      const existing = cart.find(ci => ci.id === id);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({ ...item, qty: 1 });
+      }
+
+      updateCartBadge();
     }
 
-    // --- Cart & KBJU Operations ---
+    function updateCartBadge() {
+      const badge = document.getElementById('cartCountBadge');
+      const totalQty = cart.reduce((sum, i) => sum + i.qty, 0);
+      if (totalQty > 0) {
+        badge.innerText = totalQty;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
     function openCartModal() {
       triggerHaptic('light');
-      renderCartRows();
+      renderCartItems();
+      const currentBakery = pickupBakeries.find(b => b.id === activePickupId);
+      document.getElementById('cartPickupSubText').innerText = currentBakery ? currentBakery.address : '';
       document.getElementById('cartModal').classList.remove('hidden');
+      lucide.createIcons();
     }
 
     function closeCartModal() {
       document.getElementById('cartModal').classList.add('hidden');
     }
 
-    function renderCartRows() {
-      const list = document.getElementById('cartItemListings');
-      if (shoppingCart.length === 0) {
-        list.innerHTML = `
-          <div class="text-center py-10">
-            <span class="text-4xl block mb-2">🧺</span>
-            <p class="text-white font-black text-xs">Корзина пуста</p>
-            <p class="text-zinc-500 text-[11px] mt-0.5">Выберите свежий круассан или авторский кофе</p>
-          </div>
-        `;
-        document.getElementById('cartRawSubtotal').textContent = '0 ₽';
-        document.getElementById('cartDiscountCut').textContent = '0 ₽';
-        document.getElementById('cartGrandTotal').textContent = '0 ₽';
-        document.getElementById('cartKcalSum').textContent = '0 ккал';
-        document.getElementById('cartMacrosSum').textContent = 'Б: 0 • Ж: 0 • У: 0';
-        return;
-      }
-
-      let subtotal = 0;
-      let totalKcal = 0;
-      let totalB = 0;
-      let totalJ = 0;
-      let totalU = 0;
-
-      list.innerHTML = shoppingCart.map((item, idx) => {
-        const itemSum = item.price * item.qty;
-        subtotal += itemSum;
-        if (item.kbju) {
-          totalKcal += item.kbju.kcal * item.qty;
-          totalB += item.kbju.b * item.qty;
-          totalJ += item.kbju.j * item.qty;
-          totalU += item.kbju.u * item.qty;
-        }
-
-        return `
-          <div class="flex items-center justify-between p-2.5 rounded-xl bg-app-bg border border-app-border">
-            <div class="flex items-center space-x-2.5 max-w-[65%]">
-              <span class="text-xl flex-shrink-0">${item.emoji || '🥐'}</span>
-              <div class="truncate">
-                <div class="font-bold text-white text-xs leading-snug truncate">${item.name}</div>
-                <div class="text-[10px] text-mint-light font-semibold mt-0.5">${item.price} ₽ × ${item.qty} = ${itemSum} ₽</div>
-                ${item.kbju ? `<div class="text-[9px] text-zinc-500 mt-0.5">${item.kbju.kcal * item.qty} ккал • Б:${(item.kbju.b*item.qty).toFixed(1)} Ж:${(item.kbju.j*item.qty).toFixed(1)}</div>` : ''}
-              </div>
-            </div>
-            <div class="flex items-center space-x-2">
-              <button onclick="alterCartQuantity(${idx}, -1)" class="w-6 h-6 rounded bg-app-card text-zinc-300 hover:text-white flex items-center justify-center text-xs">－</button>
-              <span class="font-black text-xs text-white w-4 text-center">${item.qty}</span>
-              <button onclick="alterCartQuantity(${idx}, 1)" class="w-6 h-6 rounded bg-app-card text-zinc-300 hover:text-white flex items-center justify-center text-xs">＋</button>
-              <button onclick="removeCartPosition(${idx})" class="text-rose-400 hover:text-rose-300 ml-1 text-xs">✕</button>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      const discountVal = Math.min(subtotal, appliedCouponDiscount);
-      const grandTotal = Math.max(0, subtotal - discountVal);
-
-      document.getElementById('cartRawSubtotal').textContent = `${subtotal} ₽`;
-      document.getElementById('cartDiscountCut').textContent = `-${discountVal} ₽`;
-      document.getElementById('cartGrandTotal').textContent = `${grandTotal} ₽`;
-
-      document.getElementById('cartKcalSum').textContent = `${Math.round(totalKcal)} ккал`;
-      document.getElementById('cartMacrosSum').textContent = `Б: ${totalB.toFixed(1)} • Ж: ${totalJ.toFixed(1)} • У: ${totalU.toFixed(1)}`;
-    }
-
-    function alterCartQuantity(idx, diff) {
+    function changeCartItemQty(id, delta) {
       triggerHaptic('light');
-      if (!shoppingCart[idx]) return;
-      shoppingCart[idx].qty += diff;
-      if (shoppingCart[idx].qty <= 0) shoppingCart.splice(idx, 1);
-      refreshCartVisuals();
-      renderCartRows();
-    }
+      const idx = cart.findIndex(i => i.id === id);
+      if (idx === -1) return;
 
-    function removeCartPosition(idx) {
-      triggerHaptic('medium');
-      shoppingCart.splice(idx, 1);
-      refreshCartVisuals();
-      renderCartRows();
-    }
-
-    function refreshCartVisuals() {
-      const count = shoppingCart.reduce((sum, it) => sum + it.qty, 0);
-      const badge = document.getElementById('cartCountBadge');
-      if (count > 0) {
-        badge.classList.remove('hidden');
-        badge.textContent = count;
-      } else {
-        badge.classList.add('hidden');
+      cart[idx].qty += delta;
+      if (cart[idx].qty <= 0) {
+        cart.splice(idx, 1);
       }
+      renderCartItems();
+      updateCartBadge();
     }
 
-    function finalizeOrderPlacement() {
-      if (shoppingCart.length === 0) {
-        showToast('Корзина пуста');
+    function renderCartItems() {
+      const container = document.getElementById('cartItemsContainer');
+      container.innerHTML = '';
+
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="py-10 text-center text-zinc-500">
+            <p class="text-3xl mb-1">🥐</p>
+            <p class="text-xs font-bold text-zinc-400">Ваша корзина пуста</p>
+            <p class="text-[11px] text-zinc-600 mt-0.5">Выберите круассаны и напитки в меню</p>
+          </div>
+        `;
+        document.getElementById('cartTotalPrice').innerText = '0 ₽';
+        document.getElementById('cartTotalKcal').innerText = '0 ккал';
+        document.getElementById('cartTotalP').innerText = '0г';
+        document.getElementById('cartTotalF').innerText = '0г';
+        document.getElementById('cartTotalC').innerText = '0г';
         return;
       }
 
-      triggerHaptic('success');
-      const subtotal = shoppingCart.reduce((acc, it) => acc + (it.price * it.qty), 0);
-      const finalAmt = Math.max(0, subtotal - appliedCouponDiscount);
-      const code = `К-${Math.floor(10 + Math.random() * 80)} [${Math.floor(1000 + Math.random() * 9000)}]`;
+      let totalPrice = 0;
+      let totalKcal = 0;
+      let totalP = 0;
+      let totalF = 0;
+      let totalC = 0;
 
-      const now = new Date();
-      const dateStr = now.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' }) + ' ' + now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+      cart.forEach(item => {
+        totalPrice += item.price * item.qty;
+        totalKcal += item.kcal * item.qty;
+        totalP += item.p * item.qty;
+        totalF += item.f * item.qty;
+        totalC += item.c * item.qty;
 
-      orderHistoryList.unshift({
-        code: code,
-        status: 'ПРИНЯТ',
-        date: dateStr,
-        items: JSON.parse(JSON.stringify(shoppingCart)),
-        total: finalAmt
+        const row = document.createElement('div');
+        row.className = "flex items-center justify-between bg-brandSurface p-2.5 rounded-xl border border-brandBorder";
+        row.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <span class="text-xl">${item.emoji}</span>
+            <div>
+              <h5 class="text-xs font-bold text-white line-clamp-1">${item.name}</h5>
+              <span class="text-[10px] text-mint-400 font-semibold">${item.price * item.qty} ₽</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 bg-brandDark border border-brandBorder rounded-lg px-1.5 py-0.5">
+            <button onclick="changeCartItemQty(${item.id}, -1)" class="text-zinc-400 hover:text-white text-xs px-1 font-black">-</button>
+            <span class="text-xs font-bold text-white min-w-[14px] text-center">${item.qty}</span>
+            <button onclick="changeCartItemQty(${item.id}, 1)" class="text-zinc-400 hover:text-white text-xs px-1 font-black">+</button>
+          </div>
+        `;
+        container.appendChild(row);
       });
 
-      shoppingCart = [];
-      appliedCouponDiscount = 0;
-      refreshCartVisuals();
-      closeCartModal();
-      renderOrdersHistory();
-      switchTab('orders');
-      showToast(`Заказ ${code} принят к исполнению!`);
+      document.getElementById('cartTotalPrice').innerText = `${totalPrice} ₽`;
+      document.getElementById('cartTotalKcal').innerText = `${Math.round(totalKcal)} ккал`;
+      document.getElementById('cartTotalP').innerText = `${totalP.toFixed(1)}г`;
+      document.getElementById('cartTotalF').innerText = `${totalF.toFixed(1)}г`;
+      document.getElementById('cartTotalC').innerText = `${totalC.toFixed(1)}г`;
     }
 
-    // --- Coupons Logic ---
-    function switchCouponsType(type) {
-      triggerHaptic('selection');
-      activeCouponsView = type;
-      const bGen = document.getElementById('couponBtnGeneral');
-      const bPer = document.getElementById('couponBtnPersonal');
-      if (type === 'general') {
-        bGen.className = 'py-2 text-xs font-black uppercase rounded-lg transition bg-mint text-black shadow';
-        bPer.className = 'py-2 text-xs font-bold uppercase rounded-lg transition text-zinc-400 hover:text-white';
-      } else {
-        bPer.className = 'py-2 text-xs font-black uppercase rounded-lg transition bg-mint text-black shadow';
-        bGen.className = 'py-2 text-xs font-bold uppercase rounded-lg transition text-zinc-400 hover:text-white';
-      }
-      renderCouponsList();
-    }
-
-    function renderCouponsList() {
-      const container = document.getElementById('couponsListWrapper');
-      const list = activeCouponsView === 'general' ? couponStore.general : couponStore.personal;
-
-      container.innerHTML = list.map(c => `
-        <div class="rounded-2xl bg-app-card border border-app-border p-3.5 flex flex-col justify-between shadow-md relative group hover:border-mint/50 transition">
-          <div class="flex items-start justify-between">
-            <div class="flex space-x-3">
-              <div class="w-10 h-10 rounded-xl bg-mint/10 border border-mint/25 flex items-center justify-center text-xl flex-shrink-0">
-                ${c.emoji || '🎁'}
-              </div>
-              <div>
-                <span class="px-2 py-0.5 rounded text-[8px] font-black uppercase bg-mint text-black">${c.tag}</span>
-                <h4 class="text-xs font-black text-white mt-1 leading-snug">${c.title}</h4>
-                <p class="text-[10px] text-zinc-400 mt-0.5 leading-relaxed">${c.desc}</p>
-              </div>
-            </div>
-            <div class="text-right flex-shrink-0">
-              <span class="text-xs font-black text-mint-light">${c.priceText}</span>
-            </div>
-          </div>
-
-          <div class="mt-3 pt-2.5 border-t border-app-border flex items-center justify-between">
-            <span class="text-[9px] font-mono font-bold text-zinc-500 uppercase">КОД: ${c.code}</span>
-            <button onclick="activateCoupon('${c.code}', ${c.discount})" class="bg-mint hover:bg-mint-light text-black font-black text-[10px] px-3.5 py-1.5 rounded-lg uppercase tracking-wider transition active:scale-95 shadow-mint">
-              Применить
-            </button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function activateCoupon(code, discount) {
+    function checkoutOrder() {
+      if (cart.length === 0) return;
       triggerHaptic('success');
-      appliedCouponDiscount = discount;
-      showToast(`Купон ${code} применен (-${discount} ₽)`);
-      openCartModal();
+
+      const bakery = pickupBakeries.find(b => b.id === activePickupId);
+      const randomPin = Math.floor(1000 + Math.random() * 9000);
+      const newOrderNum = `K-${Math.floor(10 + Math.random() * 89)}`;
+
+      const newOrder = {
+        id: newOrderNum,
+        pin: randomPin.toString(),
+        date: new Date().toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }),
+        status: 'ГОТОВИТСЯ',
+        bakeryName: bakery.name,
+        items: [...cart],
+        total: cart.reduce((sum, i) => sum + (i.price * i.qty), 0)
+      };
+
+      myOrders.unshift(newOrder);
+      cart = [];
+      updateCartBadge();
+      closeCartModal();
+
+      alert(`Заказ ${newOrder.id} [${newOrder.pin}] успешно принят!\nСамовывоз: ${bakery.name}\nБудет готов через 10–15 минут.`);
+      navSwitchScreen('orders');
+    }
+
+    // ==================== ВЫБОР ПЕКАРНИ (САМОВЫВОЗ) ====================
+    function openPickupSelectorModal() {
+      triggerHaptic('light');
+      renderPickupLocations();
+      document.getElementById('pickupModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closePickupSelectorModal() {
+      document.getElementById('pickupModal').classList.add('hidden');
+    }
+
+    function renderPickupLocations() {
+      const container = document.getElementById('pickupLocationsList');
+      container.innerHTML = '';
+
+      pickupBakeries.forEach(bakery => {
+        const isActive = (bakery.id === activePickupId);
+        const card = document.createElement('div');
+        card.className = `p-3.5 rounded-2xl border transition cursor-pointer flex items-center justify-between ${
+          isActive ? 'bg-mint-500/15 border-mint-400' : 'bg-brandSurface border-brandBorder hover:border-zinc-500'
+        }`;
+        card.onclick = () => selectBakeryLocation(bakery.id);
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full ${isActive ? 'bg-mint-400' : 'bg-zinc-600'}"></span>
+              <h4 class="text-xs font-bold text-white">${bakery.name}</h4>
+            </div>
+            <p class="text-[11px] text-zinc-400 mt-0.5">${bakery.address}</p>
+            <div class="flex items-center gap-2 mt-1.5 text-[10px] text-zinc-500 font-medium">
+              <span>🕒 ${bakery.hours}</span>
+              <span>•</span>
+              <span class="text-mint-400 font-bold">${bakery.distance}</span>
+            </div>
+          </div>
+          ${isActive ? '<span class="text-mint-400 font-black text-sm">✓</span>' : ''}
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function selectBakeryLocation(id) {
+      triggerHaptic('selection');
+      activePickupId = id;
+      const bakery = pickupBakeries.find(b => b.id === id);
+      if (bakery) {
+        document.getElementById('headerPickupName').innerText = bakery.name.replace(/^(Круассан Кафе|Кёнигсберг Бейкери)\s*—\s*/, '');
+        document.getElementById('activePickupAddressText').innerText = bakery.address;
+        
+        // Синхронизация с экраном карты
+        updateSelectedRestaurantDetails(bakery);
+      }
+      closePickupSelectorModal();
+    }
+
+    function confirmSelectedBakeryForPickup() {
+      selectBakeryLocation(activePickupId);
+      triggerHaptic('success');
+      alert(`Пекарня для самовывоза выбрана:\n${pickupBakeries.find(b => b.id === activePickupId)?.name}`);
+      navSwitchScreen('menu');
+    }
+
+    // ==================== КАРТА LEAFLET (РЕСТОРАНЫ) ====================
+    let mapInstance = null;
+    let mapMarkers = [];
+
+    function initMapOnce() {
+      if (mapInstance) {
+        setTimeout(() => mapInstance.invalidateSize(), 200);
+        return;
+      }
+
+      mapInstance = L.map('mapContainer', {
+        zoomControl: false,
+        attributionControl: false
+      }).setView([54.7104, 20.5101], 13);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18
+      }).addTo(mapInstance);
+
+      pickupBakeries.forEach(b => {
+        const customIcon = L.divIcon({
+          className: 'custom-pin',
+          html: `<div style="background:#14b8a6; color:#0a0d0e; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-center; font-weight:bold; font-size:14px; border:2px solid #fff; box-shadow:0 0 10px rgba(45,212,191,0.5);">🥐</div>`,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14]
+        });
+
+        const marker = L.marker(b.coords, { icon: customIcon }).addTo(mapInstance);
+        marker.on('click', () => {
+          triggerHaptic('selection');
+          activePickupId = b.id;
+          updateSelectedRestaurantDetails(b);
+        });
+        mapMarkers.push({ id: b.id, marker });
+      });
+
+      const current = pickupBakeries.find(b => b.id === activePickupId) || pickupBakeries[0];
+      updateSelectedRestaurantDetails(current);
+    }
+
+    function updateSelectedRestaurantDetails(bakery) {
+      document.getElementById('resCardName').innerText = bakery.name;
+      document.getElementById('resCardAddress').innerText = bakery.address;
+      document.getElementById('resCardDistance').innerText = bakery.distance;
+      if (mapInstance) {
+        mapInstance.panTo(bakery.coords);
+      }
+    }
+
+    // ==================== КУПОНЫ ====================
+    let currentCouponTab = 'public';
+
+    function switchCouponTab(tab) {
+      triggerHaptic('selection');
+      currentCouponTab = tab;
+      const pubBtn = document.getElementById('couponTabPublic');
+      const perBtn = document.getElementById('couponTabPersonal');
+
+      if (tab === 'public') {
+        pubBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold bg-mint-400 text-brandDark transition";
+        perBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold text-zinc-400 hover:text-white transition";
+      } else {
+        perBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold bg-mint-400 text-brandDark transition";
+        pubBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold text-zinc-400 hover:text-white transition";
+      }
+      renderCoupons();
+    }
+
+    function renderCoupons() {
+      const container = document.getElementById('couponsList');
+      container.innerHTML = '';
+
+      const list = coupons.filter(c => c.type === currentCouponTab);
+      list.forEach(c => {
+        const card = document.createElement('div');
+        card.className = "bg-brandCard border border-brandBorder rounded-2xl p-3.5 flex items-center justify-between";
+        card.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="text-3xl">${c.emoji}</div>
+            <div>
+              <span class="text-[10px] font-black uppercase text-mint-400 bg-mint-500/10 px-2 py-0.5 rounded border border-mint-500/20">${c.code}</span>
+              <h4 class="text-xs font-bold text-white mt-1">${c.name}</h4>
+              <p class="text-[10px] text-zinc-400">${c.desc}</p>
+            </div>
+          </div>
+          <button onclick="applyCouponCode('${c.code}')" class="px-3 py-1.5 bg-mint-400 hover:bg-mint-500 text-brandDark text-xs font-black rounded-xl transition shrink-0">
+            ПРИМЕНИТЬ
+          </button>
+        `;
+        container.appendChild(card);
+      });
     }
 
     function applyManualCoupon() {
-      const input = document.getElementById('promoCodeInput');
-      const code = input.value.trim().toUpperCase();
-      if (!code) {
-        showToast('Введите промокод');
-        return;
-      }
-
-      if (code === 'МЯТА20' || code === 'МЯТА' || code === 'КОФЕ' || code === '2ДЕСЕРТА' || code === 'CROISSANT') {
-        triggerHaptic('success');
-        appliedCouponDiscount = 160;
-        showToast(`Промокод ${code} активирован: -160 ₽!`);
-        input.value = '';
-        openCartModal();
-      } else {
-        triggerHaptic('error');
-        showToast('Промокод не найден или устарел');
-      }
+      const val = document.getElementById('couponCodeInput').value.trim();
+      if (!val) return;
+      applyCouponCode(val);
+      document.getElementById('couponCodeInput').value = '';
     }
 
-    // --- Orders History & Receipt ---
-    function renderOrdersHistory() {
-      const container = document.getElementById('ordersListContainer');
-      if (orderHistoryList.length === 0) {
-        container.innerHTML = '<p class="text-center text-zinc-500 py-10 text-xs">Заказов пока не было</p>';
-        return;
-      }
+    function applyCouponCode(code) {
+      triggerHaptic('success');
+      alert(`Купон «${code}» успешно активирован на следующий самовывоз!`);
+    }
 
-      container.innerHTML = orderHistoryList.map((order, idx) => `
-        <div class="rounded-2xl bg-app-card border border-app-border p-3.5 shadow-md">
-          <div class="flex items-center justify-between pb-2 border-b border-app-border">
+    // ==================== ЗАКАЗЫ И ЧЕКИ ====================
+    function renderOrders() {
+      const container = document.getElementById('ordersList');
+      container.innerHTML = '';
+
+      myOrders.forEach(order => {
+        const card = document.createElement('div');
+        card.className = "bg-brandCard border border-brandBorder rounded-2xl p-4 space-y-3";
+        
+        const itemsList = order.items.map(i => `
+          <div class="flex justify-between text-xs text-zinc-300">
+            <span>${i.name} × ${i.qty}</span>
+            <span class="font-bold text-white">${i.price * i.qty} ₽</span>
+          </div>
+        `).join('');
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between border-b border-brandBorder/60 pb-2.5">
             <div>
-              <span class="font-black text-xs text-white">ЗАКАЗ № ${order.code}</span>
-              <p class="text-[10px] text-zinc-400 mt-0.5">${order.date}</p>
+              <span class="text-xs font-black text-white tracking-wider">ЗАКАЗ № ${order.id} <span class="text-mint-400 font-mono">[${order.pin}]</span></span>
+              <p class="text-[10px] text-zinc-500">${order.date} • ${order.bakeryName}</p>
             </div>
-            <span class="px-2 py-0.5 rounded text-[9px] font-black tracking-wider uppercase ${order.status === 'ПРИНЯТ' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40' : 'bg-mint-bgLight text-mint-light border border-mint/40'}">
-              ${order.status}
-            </span>
+            <span class="text-[10px] font-black px-2 py-0.5 rounded bg-zinc-800 text-mint-400 border border-mint-500/30 uppercase">${order.status}</span>
           </div>
 
-          <div class="py-2.5 space-y-1 text-xs">
-            ${order.items.map(it => `
-              <div class="flex justify-between text-zinc-300">
-                <span class="truncate max-w-[70%]">${it.emoji ? it.emoji + ' ' : ''}${it.name} ${it.qty > 1 ? `× ${it.qty}` : ''}</span>
-                <span class="font-bold text-white">${it.price * it.qty}.00 ₽</span>
-              </div>
-            `).join('')}
+          <div class="space-y-1">
+            ${itemsList}
           </div>
 
-          <div class="flex justify-between items-center pt-2 border-t border-app-border text-xs">
-            <span class="font-bold text-zinc-400">Сумма заказа:</span>
-            <span class="font-black text-mint-light text-sm">${order.total}.00 ₽</span>
+          <div class="flex items-center justify-between pt-1 border-t border-brandBorder/60">
+            <span class="text-xs text-zinc-400">Сумма заказа:</span>
+            <span class="text-sm font-black text-mint-400">${order.total} ₽</span>
           </div>
 
-          <div class="grid grid-cols-2 gap-2 mt-3 pt-2">
-            <button onclick="displayOrderReceipt(${idx})" class="py-2 px-2 rounded-xl bg-app-bg border border-app-border hover:border-mint text-zinc-300 hover:text-white font-black text-[10px] uppercase tracking-wider flex items-center justify-center space-x-1.5 transition">
-              <i class="fa-solid fa-receipt text-mint"></i>
-              <span>СМОТРЕТЬ ЧЕК</span>
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button onclick="viewReceipt('${order.id}')" class="py-2 rounded-xl bg-brandSurface border border-brandBorder text-xs font-bold text-zinc-300 hover:text-white transition flex items-center justify-center gap-1.5">
+              <i data-lucide="receipt" class="w-3.5 h-3.5 text-mint-400"></i>
+              СМОТРЕТЬ ЧЕК
             </button>
-            <button onclick="reorderPreviousItems(${idx})" class="py-2 px-2 rounded-xl bg-mint hover:bg-mint-light text-black font-black text-[10px] uppercase tracking-wider flex items-center justify-center space-x-1.5 transition active:scale-95 shadow-mint">
-              <i class="fa-solid fa-arrows-rotate"></i>
-              <span>ПОВТОРИТЬ ЗАКАЗ</span>
+            <button onclick="repeatOrder('${order.id}')" class="py-2 rounded-xl bg-mint-400 hover:bg-mint-500 text-brandDark text-xs font-black transition flex items-center justify-center gap-1.5">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              ПОВТОРИТЬ
             </button>
           </div>
-        </div>
-      `).join('');
+        `;
+        container.appendChild(card);
+      });
+
+      lucide.createIcons();
     }
 
-    function displayOrderReceipt(idx) {
+    function viewReceipt(orderId) {
       triggerHaptic('light');
-      const order = orderHistoryList[idx];
+      const order = myOrders.find(o => o.id === orderId);
       if (!order) return;
 
-      document.getElementById('receiptCodeHeading').textContent = `КАССОВЫЙ ЧЕК № ${order.code}`;
-      document.getElementById('receiptTimestamp').textContent = `${order.date} • КАССА №01`;
-      document.getElementById('receiptFinalSum').textContent = `${order.total}.00 ₽`;
+      document.getElementById('receiptOrderNum').innerText = `ЗАКАЗ № ${order.id} [${order.pin}]`;
+      document.getElementById('receiptDate').innerText = order.date;
+      document.getElementById('receiptAddress').innerText = order.bakeryName;
+      document.getElementById('receiptTotalAmount').innerText = `${order.total} ₽`;
 
-      const list = document.getElementById('receiptRowsContainer');
-      list.innerHTML = order.items.map(it => `
-        <div class="border-b border-dashed border-zinc-300 pb-1">
-          <div class="flex justify-between text-[11px] font-bold">
-            <span class="truncate max-w-[65%]">${it.emoji ? it.emoji + ' ' : ''}${it.name}</span>
-            <span>${it.price * it.qty}.00</span>
-          </div>
-          <div class="text-[9px] text-zinc-600 flex justify-between">
-            <span>${it.qty} шт × ${it.price}.00</span>
-            ${it.kbju ? `<span>${it.kbju.kcal * it.qty} ккал</span>` : ''}
-          </div>
+      const listContainer = document.getElementById('receiptItemsList');
+      listContainer.innerHTML = order.items.map(i => `
+        <div class="flex justify-between">
+          <span>${i.name} (x${i.qty})</span>
+          <span>${i.price * i.qty} ₽</span>
         </div>
       `).join('');
 
@@ -1626,147 +1206,52 @@
       document.getElementById('receiptModal').classList.add('hidden');
     }
 
-    function reorderPreviousItems(idx) {
-      triggerHaptic('success');
-      const order = orderHistoryList[idx];
+    function repeatOrder(orderId) {
+      triggerHaptic('medium');
+      const order = myOrders.find(o => o.id === orderId);
       if (!order) return;
-      shoppingCart = JSON.parse(JSON.stringify(order.items));
-      refreshCartVisuals();
-      showToast(`Позиции из ${order.code} добавлены в корзину`);
+
+      cart = [];
+      order.items.forEach(i => {
+        const dish = dishes.find(d => d.name === i.name) || { id: 999, name: i.name, price: i.price, emoji: '🥐', kcal: 300, p: 5, f: 10, c: 30 };
+        cart.push({ ...dish, qty: i.qty });
+      });
+
+      updateCartBadge();
+      alert(`Позиции из заказа ${order.id} добавлены в корзину!`);
       openCartModal();
     }
 
-    // --- Interactive Map (Leaflet) ---
-    function initLeafletMapInstance() {
-      if (leafletMap) {
-        leafletMap.invalidateSize();
-        return;
-      }
-
-      leafletMap = L.map('interactiveMap', {
-        zoomControl: false,
-        attributionControl: false
-      }).setView([54.712, 20.509], 13);
-
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(leafletMap);
-
-      const customMintPin = L.divIcon({
-        className: 'custom-leaflet-mint-pin',
-        html: `
-          <div style="background-color: #14b8a6; color: #000; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 2px solid #fff; box-shadow: 0 0 12px rgba(20, 184, 166, 0.9);">
-            🥐
-          </div>
-        `,
-        iconSize: [32, 32],
-        iconAnchor: [16, 16]
+    // ==================== НАВИГАЦИЯ МЕЖДУ ЭКРАНАМИ ====================
+    function navSwitchScreen(screenId) {
+      triggerHaptic('selection');
+      document.querySelectorAll('.screen-view').forEach(s => s.classList.add('hidden'));
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        if (btn.getAttribute('data-screen') === screenId) {
+          btn.className = "nav-item py-1 text-mint-400 flex flex-col items-center gap-1 transition font-bold";
+        } else {
+          btn.className = "nav-item py-1 text-zinc-400 hover:text-white flex flex-col items-center gap-1 transition";
+        }
       });
 
-      bakeryBranches.forEach((b, i) => {
-        const marker = L.marker([b.lat, b.lng], { icon: customMintPin }).addTo(leafletMap);
-        marker.on('click', () => {
-          chooseBranchLocation(i);
-        });
-      });
-    }
+      const activeScreen = document.getElementById(`screen-${screenId}`);
+      if (activeScreen) activeScreen.classList.remove('hidden');
 
-    function chooseBranchLocation(i) {
-      triggerHaptic('selection');
-      const branch = bakeryBranches[i];
-      if (!branch) return;
-      document.getElementById('selectedBakeryName').textContent = branch.name;
-      document.getElementById('selectedBakeryDesc').textContent = branch.desc;
-      showToast(`Выбрана точка: ${branch.short}`);
-      if (leafletMap) {
-        leafletMap.panTo([branch.lat, branch.lng], { animate: true });
+      if (screenId === 'restaurants') {
+        initMapOnce();
+      } else if (screenId === 'coupons') {
+        renderCoupons();
+      } else if (screenId === 'orders') {
+        renderOrders();
       }
     }
 
-    function confirmBakeryBranch() {
-      triggerHaptic('success');
-      const name = document.getElementById('selectedBakeryName').textContent;
-      document.getElementById('currentBranchLabel').textContent = name;
-      showToast('Пекарня сохранена для получения заказа');
-      switchTab('menu');
-    }
-
-    function filterMapSpots(tag) {
-      triggerHaptic('selection');
-      showToast(`Фильтр карты: ${tag.toUpperCase()}`);
-    }
-
-    // --- Delivery / Pickup Mode Toggle ---
-    function setDeliveryMode(mode) {
-      triggerHaptic('selection');
-      currentDeliveryMode = mode;
-      const bPick = document.getElementById('btnOrderPickup');
-      const bDel = document.getElementById('btnOrderDelivery');
-
-      if (mode === 'pickup') {
-        bPick.className = 'flex-1 py-1.5 text-xs font-black uppercase rounded-lg transition bg-mint text-black shadow flex items-center justify-center space-x-1.5';
-        bDel.className = 'flex-1 py-1.5 text-xs font-bold uppercase rounded-lg transition text-zinc-400 hover:text-white flex items-center justify-center space-x-1.5';
-        showToast('Способ: Самовывоз из пекарни');
-      } else {
-        bDel.className = 'flex-1 py-1.5 text-xs font-black uppercase rounded-lg transition bg-mint text-black shadow flex items-center justify-center space-x-1.5';
-        bPick.className = 'flex-1 py-1.5 text-xs font-bold uppercase rounded-lg transition text-zinc-400 hover:text-white flex items-center justify-center space-x-1.5';
-        showToast('Способ: Экспресс-доставка');
-      }
-    }
-
-    // --- Brand Switcher ---
-    function toggleBrandSelector() {
-      triggerHaptic('light');
-      document.getElementById('brandSwitchModal').classList.toggle('hidden');
-    }
-
-    function setBrandConcept(brand) {
-      triggerHaptic('success');
-      currentBrand = brand;
-      document.getElementById('brandSwitchModal').classList.add('hidden');
-      const title = document.getElementById('headerBrandTitle');
-      if (brand === 'croissant') {
-        title.textContent = 'Круассан Кафе';
-        showToast('Концепция: Круассан Кафе');
-      } else {
-        title.textContent = 'Кёнигсберг Бейкери';
-        showToast('Концепция: Кёнигсберг Бейкери');
-      }
-    }
-
-    function toggleSideMenu() {
-      triggerHaptic('light');
-      document.getElementById('sideDrawer').classList.toggle('hidden');
-    }
-
-    function addPromoComboToCart(name, price, kcal, b, j, u, emoji = '🥐') {
-      triggerHaptic('success');
-      shoppingCart.push({
-        id: Date.now(),
-        name: name,
-        emoji: emoji,
-        price: price,
-        qty: 1,
-        kbju: { kcal, b, j, u }
-      });
-      refreshCartVisuals();
-      showToast(`«${name}» добавлен в корзину`);
-      openCartModal();
-    }
-
-    // --- Floating Toast Utility ---
-    let toastTimeout = null;
-    function showToast(msg) {
-      const toast = document.getElementById('toastNotification');
-      const text = document.getElementById('toastNoticeText');
-      if (!toast || !text) return;
-      text.textContent = msg;
-      toast.classList.remove('opacity-0', 'pointer-events-none');
-      toast.classList.add('opacity-100');
-      if (toastTimeout) clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => {
-        toast.classList.add('opacity-0', 'pointer-events-none');
-        toast.classList.remove('opacity-100');
-      }, 2200);
-    }
+    // Стартовая инициализация
+    window.addEventListener('DOMContentLoaded', () => {
+      renderCatalog();
+      renderCoupons();
+      lucide.createIcons();
+    });
   </script>
 </body>
 </html>
