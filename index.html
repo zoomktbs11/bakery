@@ -12,6 +12,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
@@ -42,61 +43,144 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
+    /* CSS-переменные для динамической смены темы */
+    :root {
+      --bg-main: #0a0d0e;
+      --bg-header: rgba(10, 13, 14, 0.95);
+      --bg-card: #111618;
+      --bg-surface: #182023;
+      --border-color: #232d32;
+      --text-main: #ffffff;
+      --text-sub: #a1a1aa;
+      --text-muted: #71717a;
+      --mint-glow: rgba(45, 212, 191, 0.2);
+    }
+
+    body.light-theme {
+      --bg-main: #f4f6f8;
+      --bg-header: rgba(255, 255, 255, 0.95);
+      --bg-card: #ffffff;
+      --bg-surface: #f0f3f5;
+      --border-color: #e2e8f0;
+      --text-main: #09090b;
+      --text-sub: #4b5563;
+      --text-muted: #9ca3af;
+      --mint-glow: rgba(20, 184, 166, 0.25);
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    .theme-header {
+      background-color: var(--bg-header);
+      border-color: var(--border-color);
+    }
+
+    .theme-card {
+      background-color: var(--bg-card);
+      border-color: var(--border-color);
+      color: var(--text-main);
+    }
+
+    .theme-surface {
+      background-color: var(--bg-surface);
+      border-color: var(--border-color);
+      color: var(--text-main);
+    }
+
+    .theme-border {
+      border-color: var(--border-color);
+    }
+
+    .theme-subtext {
+      color: var(--text-sub);
+    }
+
+    .theme-mutedtext {
+      color: var(--text-muted);
+    }
+
     /* Плавная прокрутка и скрытие скроллбаров */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     
-    /* Свечение элементов */
     .glow-mint {
-      box-shadow: 0 0 15px rgba(45, 212, 191, 0.2);
+      box-shadow: 0 0 16px var(--mint-glow);
     }
     
-    /* Темный стиль карты Leaflet */
-    .leaflet-tile {
+    /* Стили для карты Leaflet в темном режиме */
+    body:not(.light-theme) .leaflet-tile {
       filter: brightness(0.65) invert(1) contrast(3) hue-rotate(175deg) saturate(0.35);
     }
-    .leaflet-container {
+    body:not(.light-theme) .leaflet-container {
       background: #0a0d0e !important;
-      font-family: inherit;
     }
-    .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+    body:not(.light-theme) .leaflet-popup-content-wrapper,
+    body:not(.light-theme) .leaflet-popup-tip {
       background: #111618 !important;
       color: #fff !important;
       border: 1px solid #232d32;
       border-radius: 12px;
     }
+
+    /* Стили для карты Leaflet в светлом режиме */
+    body.light-theme .leaflet-tile {
+      filter: none;
+    }
+    body.light-theme .leaflet-container {
+      background: #e2e8f0 !important;
+    }
+    body.light-theme .leaflet-popup-content-wrapper,
+    body.light-theme .leaflet-popup-tip {
+      background: #ffffff !important;
+      color: #09090b !important;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+    }
   </style>
 </head>
-<body class="bg-brandDark text-white antialiased select-none overflow-hidden h-[100dvh] flex flex-col justify-between">
+<body class="antialiased select-none overflow-hidden h-[100dvh] flex flex-col justify-between">
 
   <!-- ==================== ШАПКА ПРИЛОЖЕНИЯ ==================== -->
-  <header class="bg-brandDark/95 backdrop-blur-md border-b border-brandBorder px-4 py-3 shrink-0 z-30">
+  <header class="theme-header backdrop-blur-md border-b px-4 py-3 shrink-0 z-30 transition">
     <div class="max-w-5xl mx-auto flex items-center justify-between">
+      
       <!-- Логотип бренда -->
       <div class="flex items-center space-x-2.5 cursor-pointer" onclick="switchBrand()">
-        <div class="w-9 h-9 rounded-xl bg-mint-500/10 border border-mint-500/30 flex items-center justify-center text-mint-400 font-bold text-lg glow-mint">
+        <div class="w-9 h-9 rounded-xl bg-mint-500/10 border border-mint-500/30 flex items-center justify-center text-mint-500 font-bold text-lg glow-mint">
           🥐
         </div>
         <div>
-          <h1 id="brandTitle" class="text-sm font-extrabold tracking-wider uppercase text-white flex items-center gap-1.5">
+          <h1 id="brandTitle" class="text-sm font-extrabold tracking-wider uppercase flex items-center gap-1.5">
             Круассан Кафе
-            <span class="text-[9px] bg-mint-500/20 text-mint-400 px-1.5 py-0.5 rounded border border-mint-500/30 font-medium">КЛД</span>
+            <span class="text-[9px] bg-mint-500/20 text-mint-500 px-1.5 py-0.5 rounded border border-mint-500/30 font-medium">КЛД</span>
           </h1>
-          <p id="brandSubtitle" class="text-[10px] text-zinc-400 tracking-tight font-medium">Кафе • Кондитерская • Пекарня</p>
+          <p id="brandSubtitle" class="text-[10px] theme-subtext tracking-tight font-medium">Кафе • Кондитерская • Пекарня</p>
         </div>
       </div>
 
-      <!-- Действия: Инфо и Корзина -->
+      <!-- Действия: Кнопка Темы, Пекарня и Корзина -->
       <div class="flex items-center space-x-2">
-        <button onclick="openPickupSelectorModal()" class="px-2.5 py-1.5 rounded-lg bg-brandSurface border border-brandBorder text-xs text-zinc-300 hover:text-white flex items-center gap-1.5 transition">
-          <i data-lucide="map-pin" class="w-3.5 h-3.5 text-mint-400"></i>
-          <span class="hidden sm:inline font-medium">Пекарня:</span>
-          <span id="headerPickupName" class="font-bold text-white text-[11px] truncate max-w-[120px]">Ленинский, 83</span>
+        
+        <!-- ЕДИНАЯ КНОПКА ПЕРЕКЛЮЧЕНИЯ ТЕМЫ -->
+        <button id="themeToggleBtn" onclick="toggleAppTheme()" title="Сменить тему оформления" class="p-2 rounded-lg theme-surface border flex items-center justify-center hover:scale-105 active:scale-95 transition">
+          <i id="themeToggleIcon" data-lucide="sun" class="w-4 h-4 text-amber-400"></i>
         </button>
 
-        <button onclick="openCartModal()" class="relative p-2 rounded-lg bg-mint-500/10 border border-mint-500/30 text-mint-400 hover:bg-mint-500/20 transition">
+        <!-- Выбор пекарни -->
+        <button onclick="openPickupSelectorModal()" class="px-2.5 py-1.5 rounded-lg theme-surface border text-xs theme-subtext hover:text-white flex items-center gap-1.5 transition">
+          <i data-lucide="map-pin" class="w-3.5 h-3.5 text-mint-500"></i>
+          <span class="hidden sm:inline font-medium">Пекарня:</span>
+          <span id="headerPickupName" class="font-bold text-[11px] truncate max-w-[110px]">Ленинский, 83</span>
+        </button>
+
+        <!-- Корзина -->
+        <button onclick="openCartModal()" class="relative p-2 rounded-lg bg-mint-500/10 border border-mint-500/30 text-mint-500 hover:bg-mint-500/20 transition">
           <i data-lucide="shopping-bag" class="w-5 h-5"></i>
-          <span id="cartCountBadge" class="hidden absolute -top-1.5 -right-1.5 bg-mint-400 text-brandDark font-black text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
+          <span id="cartCountBadge" class="hidden absolute -top-1.5 -right-1.5 bg-mint-500 text-white font-black text-[10px] w-4 h-4 rounded-full flex items-center justify-center shadow">0</span>
         </button>
       </div>
     </div>
@@ -105,45 +189,45 @@
   <!-- ==================== ОСНОВНОЙ КОНТЕНТ (ЭКРАНЫ) ==================== -->
   <main class="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar relative w-full max-w-5xl mx-auto pb-20">
 
-    <!-- 1. ЭКРАН: МЕНЮ (ПО УМОЛЧАНИЮ) -->
+    <!-- 1. ЭКРАН: МЕНЮ -->
     <section id="screen-menu" class="screen-view p-4 space-y-4">
       <!-- Плашка самовывоза -->
-      <div class="bg-brandCard border border-brandBorder rounded-2xl p-3 flex items-center justify-between">
+      <div class="theme-card border rounded-2xl p-3 flex items-center justify-between shadow-sm">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-mint-500/15 border border-mint-500/30 flex items-center justify-center text-mint-400">
+          <div class="w-10 h-10 rounded-xl bg-mint-500/15 border border-mint-500/30 flex items-center justify-center text-mint-500">
             <i data-lucide="store" class="w-5 h-5"></i>
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-mint-400 uppercase tracking-wider">Только самовывоз</span>
-              <span class="text-[10px] bg-zinc-800 text-zinc-400 px-1.5 py-0.2 rounded font-medium">10–15 мин</span>
+              <span class="text-xs font-bold text-mint-500 uppercase tracking-wider">Только самовывоз</span>
+              <span class="text-[10px] theme-surface px-1.5 py-0.5 rounded border theme-border theme-subtext font-medium">10–15 мин</span>
             </div>
-            <p id="activePickupAddressText" class="text-xs text-white font-semibold mt-0.5 truncate max-w-[200px] sm:max-w-md">
+            <p id="activePickupAddressText" class="text-xs font-semibold mt-0.5 truncate max-w-[200px] sm:max-w-md">
               г. Калининград, Ленинский пр-т, 83
             </p>
           </div>
         </div>
-        <button onclick="openPickupSelectorModal()" class="text-xs font-semibold text-mint-400 bg-mint-500/10 hover:bg-mint-500/20 px-3 py-1.5 rounded-lg border border-mint-500/30 transition shrink-0">
+        <button onclick="openPickupSelectorModal()" class="text-xs font-semibold text-mint-500 bg-mint-500/10 hover:bg-mint-500/20 px-3 py-1.5 rounded-lg border border-mint-500/30 transition shrink-0">
           Выбрать
         </button>
       </div>
 
       <!-- Поиск по каталогу -->
       <div class="relative">
-        <i data-lucide="search" class="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
-        <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="Найти круассан, чизкейк, раф..." class="w-full bg-brandCard border border-brandBorder rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-mint-400 transition">
+        <i data-lucide="search" class="w-4 h-4 theme-mutedtext absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+        <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="Найти круассан, чизкейк, раф..." class="w-full theme-card border rounded-xl pl-10 pr-4 py-2.5 text-xs placeholder:text-zinc-400 focus:outline-none focus:border-mint-500 transition shadow-sm">
       </div>
 
-      <!-- Горизонтальные категории -->
+      <!-- Категории -->
       <div class="flex items-center space-x-2 overflow-x-auto no-scrollbar py-1" id="categoryPills">
-        <button onclick="filterCategory('all')" data-cat="all" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-mint-400 text-brandDark transition">Все позиции</button>
-        <button onclick="filterCategory('croissants')" data-cat="croissants" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-brandSurface border border-brandBorder text-zinc-400 hover:text-white transition">🥐 Круассаны</button>
-        <button onclick="filterCategory('desserts')" data-cat="desserts" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-brandSurface border border-brandBorder text-zinc-400 hover:text-white transition">🍰 Десерты</button>
-        <button onclick="filterCategory('coffee')" data-cat="coffee" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-brandSurface border border-brandBorder text-zinc-400 hover:text-white transition">☕ Кофе & Чай</button>
-        <button onclick="filterCategory('bakery')" data-cat="bakery" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-brandSurface border border-brandBorder text-zinc-400 hover:text-white transition">🥖 Киши & Хлеб</button>
+        <button onclick="filterCategory('all')" data-cat="all" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-mint-500 text-white transition shadow-sm">Все позиции</button>
+        <button onclick="filterCategory('croissants')" data-cat="croissants" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap theme-surface border theme-subtext hover:opacity-100 transition">🥐 Круассаны</button>
+        <button onclick="filterCategory('desserts')" data-cat="desserts" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap theme-surface border theme-subtext hover:opacity-100 transition">🍰 Десерты</button>
+        <button onclick="filterCategory('coffee')" data-cat="coffee" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap theme-surface border theme-subtext hover:opacity-100 transition">☕ Кофе & Чай</button>
+        <button onclick="filterCategory('bakery')" data-cat="bakery" class="cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap theme-surface border theme-subtext hover:opacity-100 transition">🥖 Киши & Хлеб</button>
       </div>
 
-      <!-- СЕТКА КАТАЛОГА (2 колонки на моб, 3 на планшетах, 4 на десктопе) -->
+      <!-- СЕТКА КАТАЛОГА -->
       <div id="catalogGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pt-1">
         <!-- Карточки генерируются скриптом -->
       </div>
@@ -151,69 +235,66 @@
 
     <!-- 2. ЭКРАН: КУПОНЫ -->
     <section id="screen-coupons" class="screen-view hidden p-4 space-y-4">
-      <div class="flex rounded-xl bg-brandSurface p-1 border border-brandBorder">
-        <button onclick="switchCouponTab('public')" id="couponTabPublic" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-mint-400 text-brandDark transition">ОБЩИЕ</button>
-        <button onclick="switchCouponTab('personal')" id="couponTabPersonal" class="flex-1 py-1.5 rounded-lg text-xs font-bold text-zinc-400 hover:text-white transition">ЛИЧНЫЕ</button>
+      <div class="flex rounded-xl theme-surface p-1 border theme-border">
+        <button onclick="switchCouponTab('public')" id="couponTabPublic" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-mint-500 text-white transition shadow-sm">ОБЩИЕ</button>
+        <button onclick="switchCouponTab('personal')" id="couponTabPersonal" class="flex-1 py-1.5 rounded-lg text-xs font-bold theme-subtext hover:opacity-100 transition">ЛИЧНЫЕ</button>
       </div>
 
       <!-- Поле промокода -->
-      <div class="bg-brandCard border border-brandBorder p-3 rounded-2xl space-y-2">
-        <label class="text-[11px] font-bold tracking-wider uppercase text-zinc-400">Ввести номер купона или промокод</label>
+      <div class="theme-card border p-3 rounded-2xl space-y-2 shadow-sm">
+        <label class="text-[11px] font-bold tracking-wider uppercase theme-subtext">Ввести номер купона или промокод</label>
         <div class="flex gap-2">
-          <input type="text" id="couponCodeInput" placeholder="Например: МЯТА20 или КОФЕ" class="flex-1 bg-brandDark border border-brandBorder rounded-xl px-3 py-2 text-xs text-white uppercase font-bold focus:outline-none focus:border-mint-400 transition">
-          <button onclick="applyManualCoupon()" class="px-5 py-2 bg-mint-400 text-brandDark font-black text-xs rounded-xl hover:bg-mint-500 transition">ОК</button>
+          <input type="text" id="couponCodeInput" placeholder="Например: МЯТА20 или КОФЕ" class="flex-1 theme-surface border rounded-xl px-3 py-2 text-xs uppercase font-bold focus:outline-none focus:border-mint-500 transition">
+          <button onclick="applyManualCoupon()" class="px-5 py-2 bg-mint-500 text-white font-black text-xs rounded-xl hover:bg-mint-600 transition shadow-sm">ОК</button>
         </div>
       </div>
 
       <!-- Список купонов -->
       <div id="couponsList" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <!-- Генерируется скриптом -->
+        <!-- Купоны -->
       </div>
     </section>
 
     <!-- 3. ЭКРАН: МОИ ЗАКАЗЫ -->
     <section id="screen-orders" class="screen-view hidden p-4 space-y-3">
       <div class="flex items-center justify-between mb-1">
-        <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-400">История заказов (Самовывоз)</h2>
-        <span class="text-xs text-mint-400 font-medium">Обновлено только что</span>
+        <h2 class="text-sm font-bold uppercase tracking-wider theme-subtext">История заказов (Самовывоз)</h2>
+        <span class="text-xs text-mint-500 font-medium">Обновлено только что</span>
       </div>
       <div id="ordersList" class="space-y-3">
-        <!-- Карточки заказов генерируются скриптом -->
+        <!-- Заказы -->
       </div>
     </section>
 
-    <!-- 4. ЭКРАН: РЕСТОРАНЫ (КАРТА ПЕКАРЕН) -->
+    <!-- 4. ЭКРАН: РЕСТОРАНЫ (КАРТА) -->
     <section id="screen-restaurants" class="screen-view hidden p-4 space-y-3 flex flex-col h-[calc(100dvh-135px)]">
-      <!-- Фильтры пекарен -->
       <div class="flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
-        <button class="px-3 py-1.5 rounded-xl bg-mint-400 text-brandDark font-bold text-xs whitespace-nowrap">Все филиалы (4)</button>
-        <button class="px-3 py-1.5 rounded-xl bg-brandSurface border border-brandBorder text-zinc-400 text-xs whitespace-nowrap">Открыто сейчас</button>
-        <button class="px-3 py-1.5 rounded-xl bg-brandSurface border border-brandBorder text-zinc-400 text-xs whitespace-nowrap">Wi-Fi & Розетки</button>
+        <button class="px-3 py-1.5 rounded-xl bg-mint-500 text-white font-bold text-xs whitespace-nowrap shadow-sm">Все филиалы (4)</button>
+        <button class="px-3 py-1.5 rounded-xl theme-surface border text-xs whitespace-nowrap theme-subtext">Открыто сейчас</button>
+        <button class="px-3 py-1.5 rounded-xl theme-surface border text-xs whitespace-nowrap theme-subtext">Wi-Fi & Розетки</button>
       </div>
 
-      <!-- Контейнер интерактивной карты -->
-      <div class="flex-1 w-full rounded-2xl overflow-hidden border border-brandBorder relative min-h-[220px]">
+      <div class="flex-1 w-full rounded-2xl overflow-hidden border theme-border relative min-h-[220px] shadow-sm">
         <div id="mapContainer" class="w-full h-full"></div>
       </div>
 
-      <!-- Карточка выбранной точки -->
-      <div id="selectedRestaurantCard" class="bg-brandCard border border-brandBorder p-3.5 rounded-2xl shrink-0 space-y-2">
+      <div id="selectedRestaurantCard" class="theme-card border p-3.5 rounded-2xl shrink-0 space-y-2 shadow-sm">
         <div class="flex items-start justify-between">
           <div>
             <div class="flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-mint-400 animate-pulse"></span>
-              <h3 id="resCardName" class="text-sm font-bold text-white">Круассан Кафе — Ленинский</h3>
+              <span class="w-2 h-2 rounded-full bg-mint-500 animate-pulse"></span>
+              <h3 id="resCardName" class="text-sm font-bold">Круассан Кафе — Ленинский</h3>
             </div>
-            <p id="resCardAddress" class="text-xs text-zinc-400 mt-0.5">г. Калининград, Ленинский пр-т, 83</p>
+            <p id="resCardAddress" class="text-xs theme-subtext mt-0.5">г. Калининград, Ленинский пр-т, 83</p>
           </div>
-          <span id="resCardDistance" class="text-[10px] bg-mint-500/15 border border-mint-500/30 text-mint-400 px-2 py-0.5 rounded-md font-bold">450 м</span>
+          <span id="resCardDistance" class="text-[10px] bg-mint-500/15 border border-mint-500/30 text-mint-500 px-2 py-0.5 rounded-md font-bold">450 м</span>
         </div>
 
-        <div class="flex items-center justify-between pt-1 border-t border-brandBorder/60">
-          <div class="text-[11px] text-zinc-400">
-            Режим: <span class="text-white font-medium">08:00 – 22:00</span>
+        <div class="flex items-center justify-between pt-1 border-t theme-border">
+          <div class="text-[11px] theme-subtext">
+            Режим: <span class="font-medium text-main">08:00 – 22:00</span>
           </div>
-          <button onclick="confirmSelectedBakeryForPickup()" class="px-4 py-2 bg-mint-400 hover:bg-mint-500 text-brandDark font-black text-xs rounded-xl transition flex items-center gap-1.5 shadow-md">
+          <button onclick="confirmSelectedBakeryForPickup()" class="px-4 py-2 bg-mint-500 hover:bg-mint-600 text-white font-black text-xs rounded-xl transition flex items-center gap-1.5 shadow-md">
             <i data-lucide="check" class="w-3.5 h-3.5"></i>
             ВЫБРАТЬ ДЛЯ ЗАКАЗА
           </button>
@@ -223,43 +304,41 @@
 
     <!-- 5. ЭКРАН: АКЦИИ -->
     <section id="screen-promos" class="screen-view hidden p-4 space-y-4">
-      <!-- Карта лояльности -->
-      <div class="bg-gradient-to-br from-[#122826] to-brandCard border border-mint-500/40 p-4 rounded-2xl relative overflow-hidden glow-mint">
+      <div class="theme-card border border-mint-500/40 p-4 rounded-2xl relative overflow-hidden glow-mint shadow-md">
         <div class="flex items-center justify-between mb-3">
           <div>
-            <span class="text-[10px] font-extrabold uppercase tracking-wider text-mint-400">Программа лояльности</span>
-            <h3 class="text-base font-black text-white mt-0.5">Каждый 6-й кофе в подарок</h3>
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-mint-500">Программа лояльности</span>
+            <h3 class="text-base font-black mt-0.5">Каждый 6-й кофе в подарок</h3>
           </div>
-          <div class="w-8 h-8 rounded-full bg-mint-400/20 text-mint-400 flex items-center justify-center font-bold">☕</div>
+          <div class="w-8 h-8 rounded-full bg-mint-500/20 text-mint-500 flex items-center justify-center font-bold">☕</div>
         </div>
-        <p class="text-xs text-zinc-300 mb-3">Заказывайте кофе на самовывоз и получайте любимый напиток бесплатно.</p>
+        <p class="text-xs theme-subtext mb-3">Заказывайте кофе на самовывоз и получайте любимый напиток бесплатно.</p>
         <div class="flex items-center justify-between gap-1.5">
-          <div class="w-9 h-9 rounded-xl bg-mint-400 text-brandDark font-black flex items-center justify-center text-xs">✓</div>
-          <div class="w-9 h-9 rounded-xl bg-mint-400 text-brandDark font-black flex items-center justify-center text-xs">✓</div>
-          <div class="w-9 h-9 rounded-xl bg-mint-400 text-brandDark font-black flex items-center justify-center text-xs">✓</div>
-          <div class="w-9 h-9 rounded-xl bg-mint-400 text-brandDark font-black flex items-center justify-center text-xs">✓</div>
-          <div class="w-9 h-9 rounded-xl bg-mint-400 text-brandDark font-black flex items-center justify-center text-xs">✓</div>
-          <div class="w-9 h-9 rounded-xl border-2 border-dashed border-mint-400/60 text-mint-400 font-bold flex items-center justify-center text-xs">🎁</div>
+          <div class="w-9 h-9 rounded-xl bg-mint-500 text-white font-black flex items-center justify-center text-xs shadow-sm">✓</div>
+          <div class="w-9 h-9 rounded-xl bg-mint-500 text-white font-black flex items-center justify-center text-xs shadow-sm">✓</div>
+          <div class="w-9 h-9 rounded-xl bg-mint-500 text-white font-black flex items-center justify-center text-xs shadow-sm">✓</div>
+          <div class="w-9 h-9 rounded-xl bg-mint-500 text-white font-black flex items-center justify-center text-xs shadow-sm">✓</div>
+          <div class="w-9 h-9 rounded-xl bg-mint-500 text-white font-black flex items-center justify-center text-xs shadow-sm">✓</div>
+          <div class="w-9 h-9 rounded-xl border-2 border-dashed border-mint-500/60 text-mint-500 font-bold flex items-center justify-center text-xs">🎁</div>
         </div>
       </div>
 
-      <!-- Акционные карточки -->
       <div class="space-y-3">
-        <div class="bg-brandCard border border-brandBorder rounded-2xl p-4 flex items-center gap-3">
-          <div class="text-3xl p-3 bg-brandSurface rounded-xl">🌙</div>
+        <div class="theme-card border rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+          <div class="text-3xl p-3 theme-surface border rounded-xl">🌙</div>
           <div class="flex-1">
-            <span class="text-[10px] bg-mint-500/20 text-mint-400 px-2 py-0.5 rounded font-bold uppercase">Скидка 30%</span>
-            <h4 class="text-sm font-bold text-white mt-1">Вечерняя витрина после 20:30</h4>
-            <p class="text-xs text-zinc-400 mt-0.5">На всю свежую слоёную выпечку и десерты при самовывозе.</p>
+            <span class="text-[10px] bg-mint-500/20 text-mint-500 px-2 py-0.5 rounded font-bold uppercase">Скидка 30%</span>
+            <h4 class="text-sm font-bold mt-1">Вечерняя витрина после 20:30</h4>
+            <p class="text-xs theme-subtext mt-0.5">На всю свежую слоёную выпечку и десерты при самовывозе.</p>
           </div>
         </div>
 
-        <div class="bg-brandCard border border-brandBorder rounded-2xl p-4 flex items-center gap-3">
-          <div class="text-3xl p-3 bg-brandSurface rounded-xl">🥐</div>
+        <div class="theme-card border rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+          <div class="text-3xl p-3 theme-surface border rounded-xl">🥐</div>
           <div class="flex-1">
-            <span class="text-[10px] bg-mint-500/20 text-mint-400 px-2 py-0.5 rounded font-bold uppercase">Сет дня</span>
-            <h4 class="text-sm font-bold text-white mt-1">Французский завтрак за 330 ₽</h4>
-            <p class="text-xs text-zinc-400 mt-0.5">Классический круассан Фроше + Капучино на обычном или миндальном молоке.</p>
+            <span class="text-[10px] bg-mint-500/20 text-mint-500 px-2 py-0.5 rounded font-bold uppercase">Сет дня</span>
+            <h4 class="text-sm font-bold mt-1">Французский завтрак за 330 ₽</h4>
+            <p class="text-xs theme-subtext mt-0.5">Классический круассан Фроше + Капучино на обычном или миндальном молоке.</p>
           </div>
         </div>
       </div>
@@ -268,119 +347,119 @@
   </main>
 
   <!-- ==================== НИЖНИЙ НАВИГАЦИОННЫЙ БАР ==================== -->
-  <nav class="fixed bottom-0 left-0 right-0 bg-brandDark/95 backdrop-blur-md border-t border-brandBorder z-30 py-1.5 px-2">
+  <nav class="fixed bottom-0 left-0 right-0 theme-header backdrop-blur-md border-t z-30 py-1.5 px-2 transition">
     <div class="max-w-md mx-auto grid grid-cols-5 text-center">
-      <button onclick="navSwitchScreen('restaurants')" class="nav-item py-1 text-zinc-400 hover:text-white flex flex-col items-center gap-1 transition" data-screen="restaurants">
+      <button onclick="navSwitchScreen('restaurants')" class="nav-item py-1 theme-subtext hover:text-mint-500 flex flex-col items-center gap-1 transition" data-screen="restaurants">
         <i data-lucide="map-pin" class="w-4 h-4"></i>
         <span class="text-[9px] font-bold uppercase tracking-wider">Пекарни</span>
       </button>
 
-      <button onclick="navSwitchScreen('orders')" class="nav-item py-1 text-zinc-400 hover:text-white flex flex-col items-center gap-1 transition" data-screen="orders">
+      <button onclick="navSwitchScreen('orders')" class="nav-item py-1 theme-subtext hover:text-mint-500 flex flex-col items-center gap-1 transition" data-screen="orders">
         <i data-lucide="history" class="w-4 h-4"></i>
         <span class="text-[9px] font-bold uppercase tracking-wider">Заказы</span>
       </button>
 
-      <button onclick="navSwitchScreen('menu')" class="nav-item py-1 text-mint-400 flex flex-col items-center gap-1 transition font-bold" data-screen="menu">
+      <button onclick="navSwitchScreen('menu')" class="nav-item py-1 text-mint-500 flex flex-col items-center gap-1 transition font-bold" data-screen="menu">
         <div class="w-5 h-5 flex items-center justify-center">
-          <i data-lucide="utensils" class="w-4 h-4 text-mint-400"></i>
+          <i data-lucide="utensils" class="w-4 h-4 text-mint-500"></i>
         </div>
-        <span class="text-[9px] font-bold uppercase tracking-wider text-mint-400">Меню</span>
+        <span class="text-[9px] font-bold uppercase tracking-wider text-mint-500">Меню</span>
       </button>
 
-      <button onclick="navSwitchScreen('coupons')" class="nav-item py-1 text-zinc-400 hover:text-white flex flex-col items-center gap-1 transition relative" data-screen="coupons">
+      <button onclick="navSwitchScreen('coupons')" class="nav-item py-1 theme-subtext hover:text-mint-500 flex flex-col items-center gap-1 transition relative" data-screen="coupons">
         <i data-lucide="ticket" class="w-4 h-4"></i>
         <span class="text-[9px] font-bold uppercase tracking-wider">Купоны</span>
-        <span class="w-1.5 h-1.5 rounded-full bg-mint-400 absolute top-1 right-5"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-mint-500 absolute top-1 right-5"></span>
       </button>
 
-      <button onclick="navSwitchScreen('promos')" class="nav-item py-1 text-zinc-400 hover:text-white flex flex-col items-center gap-1 transition" data-screen="promos">
+      <button onclick="navSwitchScreen('promos')" class="nav-item py-1 theme-subtext hover:text-mint-500 flex flex-col items-center gap-1 transition" data-screen="promos">
         <i data-lucide="percent" class="w-4 h-4"></i>
         <span class="text-[9px] font-bold uppercase tracking-wider">Акции</span>
       </button>
     </div>
   </nav>
 
-  <!-- ==================== МОДАЛЬНОЕ ОКНО: ВЫБОР ПЕКАРНИ (САМОВЫВОЗ) ==================== -->
-  <div id="pickupModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
-    <div class="bg-brandCard border border-brandBorder w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-5 space-y-4 max-h-[85vh] flex flex-col">
+  <!-- ==================== МОДАЛЬНОЕ ОКНО: ВЫБОР ПЕКАРНИ ==================== -->
+  <div id="pickupModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
+    <div class="theme-card border w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-5 space-y-4 max-h-[85vh] flex flex-col shadow-2xl">
       <div class="flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-mint-500/20 text-mint-400 flex items-center justify-center">
+          <div class="w-8 h-8 rounded-lg bg-mint-500/20 text-mint-500 flex items-center justify-center">
             <i data-lucide="store" class="w-4 h-4"></i>
           </div>
-          <h3 class="text-sm font-black uppercase tracking-wider text-white">Выберите пекарню для самовывоза</h3>
+          <h3 class="text-sm font-black uppercase tracking-wider">Выберите пекарню для самовывоза</h3>
         </div>
-        <button onclick="closePickupSelectorModal()" class="text-zinc-400 hover:text-white p-1">
+        <button onclick="closePickupSelectorModal()" class="theme-subtext hover:opacity-100 p-1">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <p class="text-xs text-zinc-400 shrink-0">Заказ будет бережно собран и упакован к вашему приходу. Время готовности ~ 10–15 минут.</p>
+      <p class="text-xs theme-subtext shrink-0">Заказ будет бережно собран и упакован к вашему приходу. Время готовности ~ 10–15 минут.</p>
 
       <div class="space-y-2.5 overflow-y-auto no-scrollbar flex-1" id="pickupLocationsList">
-        <!-- Генерируется скриптом -->
+        <!-- Филиалы -->
       </div>
     </div>
   </div>
 
-  <!-- ==================== МОДАЛЬНОЕ ОКНО: БЛЮДО (СОСТАВ И КБЖУ) ==================== -->
-  <div id="dishModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-brandCard border border-brandBorder w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
+  <!-- ==================== МОДАЛЬНОЕ ОКНО: БЛЮДО ==================== -->
+  <div id="dishModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="theme-card border w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar shadow-2xl">
       <div class="flex justify-between items-start">
-        <div class="w-16 h-16 rounded-2xl bg-brandSurface border border-brandBorder flex items-center justify-center text-4xl glow-mint" id="modalDishEmoji">
+        <div class="w-16 h-16 rounded-2xl theme-surface border flex items-center justify-center text-4xl glow-mint" id="modalDishEmoji">
           🥐
         </div>
-        <button onclick="closeDishModal()" class="text-zinc-400 hover:text-white p-1.5 rounded-lg bg-brandSurface">
+        <button onclick="closeDishModal()" class="theme-subtext hover:opacity-100 p-1.5 rounded-lg theme-surface border">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
       <div>
         <div class="flex items-center gap-2">
-          <span id="modalDishCat" class="text-[10px] font-bold uppercase tracking-wider text-mint-400 bg-mint-500/10 px-2 py-0.5 rounded border border-mint-500/20">Круассаны</span>
-          <span id="modalDishWeight" class="text-[10px] text-zinc-400">120 г</span>
+          <span id="modalDishCat" class="text-[10px] font-bold uppercase tracking-wider text-mint-500 bg-mint-500/10 px-2 py-0.5 rounded border border-mint-500/20">Круассаны</span>
+          <span id="modalDishWeight" class="text-[10px] theme-mutedtext">120 г</span>
         </div>
-        <h3 id="modalDishTitle" class="text-lg font-black text-white mt-1">Название блюда</h3>
+        <h3 id="modalDishTitle" class="text-lg font-black mt-1">Название блюда</h3>
       </div>
 
       <!-- КБЖУ бейджи -->
-      <div class="grid grid-cols-4 gap-2 bg-brandDark p-3 rounded-xl border border-brandBorder text-center">
+      <div class="grid grid-cols-4 gap-2 theme-surface p-3 rounded-xl border text-center">
         <div>
-          <span class="block text-[10px] text-zinc-500 font-bold uppercase">Ккал</span>
-          <span id="modalDishKcal" class="text-xs font-black text-mint-400">340</span>
+          <span class="block text-[10px] theme-mutedtext font-bold uppercase">Ккал</span>
+          <span id="modalDishKcal" class="text-xs font-black text-mint-500">340</span>
         </div>
         <div>
-          <span class="block text-[10px] text-zinc-500 font-bold uppercase">Белки</span>
-          <span id="modalDishP" class="text-xs font-bold text-white">7.2г</span>
+          <span class="block text-[10px] theme-mutedtext font-bold uppercase">Белки</span>
+          <span id="modalDishP" class="text-xs font-bold">7.2г</span>
         </div>
         <div>
-          <span class="block text-[10px] text-zinc-500 font-bold uppercase">Жиры</span>
-          <span id="modalDishF" class="text-xs font-bold text-white">18.5г</span>
+          <span class="block text-[10px] theme-mutedtext font-bold uppercase">Жиры</span>
+          <span id="modalDishF" class="text-xs font-bold">18.5г</span>
         </div>
         <div>
-          <span class="block text-[10px] text-zinc-500 font-bold uppercase">Углев.</span>
-          <span id="modalDishC" class="text-xs font-bold text-white">36.1г</span>
+          <span class="block text-[10px] theme-mutedtext font-bold uppercase">Углев.</span>
+          <span id="modalDishC" class="text-xs font-bold">36.1г</span>
         </div>
       </div>
 
       <!-- Состав -->
       <div class="space-y-1">
-        <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-          <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-mint-400"></i>
+        <h4 class="text-xs font-bold uppercase tracking-wider theme-subtext flex items-center gap-1.5">
+          <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-mint-500"></i>
           Из чего сделано (Состав):
         </h4>
-        <p id="modalDishIngredients" class="text-xs text-zinc-300 leading-relaxed bg-brandSurface/60 p-3 rounded-xl border border-brandBorder">
+        <p id="modalDishIngredients" class="text-xs theme-subtext leading-relaxed theme-surface p-3 rounded-xl border">
           Состав ингредиентов...
         </p>
       </div>
 
       <!-- Кнопка добавления -->
-      <div class="pt-2 flex items-center justify-between border-t border-brandBorder">
+      <div class="pt-2 flex items-center justify-between border-t theme-border">
         <div>
-          <span class="text-[10px] text-zinc-500 block uppercase font-bold">Стоимость</span>
-          <span id="modalDishPrice" class="text-lg font-black text-white">0 ₽</span>
+          <span class="text-[10px] theme-mutedtext block uppercase font-bold">Стоимость</span>
+          <span id="modalDishPrice" class="text-lg font-black">0 ₽</span>
         </div>
-        <button id="modalAddBtn" onclick="addCurrentModalDishToCart()" class="px-6 py-2.5 bg-mint-400 hover:bg-mint-500 text-brandDark font-black text-xs rounded-xl transition shadow-lg flex items-center gap-2">
+        <button id="modalAddBtn" onclick="addCurrentModalDishToCart()" class="px-6 py-2.5 bg-mint-500 hover:bg-mint-600 text-white font-black text-xs rounded-xl transition shadow-lg flex items-center gap-2">
           <i data-lucide="plus" class="w-4 h-4"></i>
           ДОБАВИТЬ В ЗАКАЗ
         </button>
@@ -388,55 +467,55 @@
     </div>
   </div>
 
-  <!-- ==================== МОДАЛЬНОЕ ОКНО: КОРЗИНА И ОФОРМЛЕНИЕ ==================== -->
-  <div id="cartModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-brandCard border border-brandBorder w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl p-5 space-y-4 max-h-[90vh] flex flex-col">
+  <!-- ==================== МОДАЛЬНОЕ ОКНО: КОРЗИНА ==================== -->
+  <div id="cartModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="theme-card border w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl p-5 space-y-4 max-h-[90vh] flex flex-col shadow-2xl">
       <div class="flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-mint-500/20 text-mint-400 flex items-center justify-center">
+          <div class="w-8 h-8 rounded-lg bg-mint-500/20 text-mint-500 flex items-center justify-center">
             <i data-lucide="shopping-bag" class="w-4 h-4"></i>
           </div>
           <div>
-            <h3 class="text-sm font-black uppercase tracking-wider text-white">Ваш заказ (Самовывоз)</h3>
-            <p id="cartPickupSubText" class="text-[10px] text-mint-400 font-semibold truncate max-w-[240px]">Ленинский пр-т, 83</p>
+            <h3 class="text-sm font-black uppercase tracking-wider">Ваш заказ (Самовывоз)</h3>
+            <p id="cartPickupSubText" class="text-[10px] text-mint-500 font-semibold truncate max-w-[240px]">Ленинский пр-т, 83</p>
           </div>
         </div>
-        <button onclick="closeCartModal()" class="text-zinc-400 hover:text-white p-1">
+        <button onclick="closeCartModal()" class="theme-subtext hover:opacity-100 p-1">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
       <!-- Список товаров -->
       <div id="cartItemsContainer" class="space-y-2.5 overflow-y-auto no-scrollbar flex-1 pr-1">
-        <!-- Элементы корзины -->
+        <!-- Позиции корзины -->
       </div>
 
-      <!-- Суммарный счетчик КБЖУ корзины -->
-      <div class="bg-brandDark p-2.5 rounded-xl border border-brandBorder shrink-0">
-        <div class="flex items-center justify-between text-[10px] text-zinc-400 uppercase font-bold mb-1">
+      <!-- Суммарный КБЖУ корзины -->
+      <div class="theme-surface p-2.5 rounded-xl border shrink-0">
+        <div class="flex items-center justify-between text-[10px] theme-subtext uppercase font-bold mb-1">
           <span>Суммарная пищевая ценность заказа:</span>
-          <span class="text-mint-400" id="cartTotalKcal">0 ккал</span>
+          <span class="text-mint-500 font-black" id="cartTotalKcal">0 ккал</span>
         </div>
         <div class="grid grid-cols-3 gap-2 text-center text-[10px]">
-          <div class="bg-brandSurface py-1 rounded">Белки: <b id="cartTotalP" class="text-white">0г</b></div>
-          <div class="bg-brandSurface py-1 rounded">Жиры: <b id="cartTotalF" class="text-white">0г</b></div>
-          <div class="bg-brandSurface py-1 rounded">Углеводы: <b id="cartTotalC" class="text-white">0г</b></div>
+          <div class="theme-card py-1 rounded border">Белки: <b id="cartTotalP" class="text-mint-500">0г</b></div>
+          <div class="theme-card py-1 rounded border">Жиры: <b id="cartTotalF" class="text-mint-500">0г</b></div>
+          <div class="theme-card py-1 rounded border">Углеводы: <b id="cartTotalC" class="text-mint-500">0г</b></div>
         </div>
       </div>
 
-      <!-- Итог и кнопка оформления -->
-      <div class="border-t border-brandBorder pt-3 space-y-2 shrink-0">
+      <!-- Итог и оформление -->
+      <div class="border-t theme-border pt-3 space-y-2 shrink-0">
         <div class="flex justify-between items-center text-xs">
-          <span class="text-zinc-400">Способ получения:</span>
-          <span class="text-white font-bold flex items-center gap-1">
-            <i data-lucide="store" class="w-3.5 h-3.5 text-mint-400"></i> Самовывоз (бесплатно)
+          <span class="theme-subtext">Способ получения:</span>
+          <span class="font-bold flex items-center gap-1 text-mint-500">
+            <i data-lucide="store" class="w-3.5 h-3.5"></i> Самовывоз (бесплатно)
           </span>
         </div>
         <div class="flex justify-between items-center">
-          <span class="text-sm font-bold text-zinc-400 uppercase">Итого к оплате:</span>
-          <span id="cartTotalPrice" class="text-xl font-black text-mint-400">0 ₽</span>
+          <span class="text-sm font-bold theme-subtext uppercase">Итого к оплате:</span>
+          <span id="cartTotalPrice" class="text-xl font-black text-mint-500">0 ₽</span>
         </div>
-        <button onclick="checkoutOrder()" class="w-full py-3 bg-mint-400 hover:bg-mint-500 text-brandDark font-black text-xs rounded-xl transition flex items-center justify-center gap-2 tracking-wider uppercase shadow-lg">
+        <button onclick="checkoutOrder()" class="w-full py-3 bg-mint-500 hover:bg-mint-600 text-white font-black text-xs rounded-xl transition flex items-center justify-center gap-2 tracking-wider uppercase shadow-lg">
           <i data-lucide="check" class="w-4 h-4"></i>
           Оформить самовывоз
         </button>
@@ -444,9 +523,9 @@
     </div>
   </div>
 
-  <!-- ==================== МОДАЛЬНОЕ ОКНО: КАССОВЫЙ ЧЕК ==================== -->
-  <div id="receiptModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white text-zinc-900 w-full max-w-xs rounded-2xl p-5 space-y-3 font-mono text-xs shadow-2xl relative">
+  <!-- ==================== МОДАЛЬНОЕ ОКНО: ЧЕК ==================== -->
+  <div id="receiptModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white text-zinc-900 w-full max-w-xs rounded-2xl p-5 space-y-3 font-mono text-xs shadow-2xl relative border border-zinc-200">
       <div class="text-center border-b border-dashed border-zinc-300 pb-3">
         <h3 class="font-black text-sm uppercase">КРУАССАН КАФЕ</h3>
         <p class="text-[10px] text-zinc-600">ООО «Кёнигсберг Бейкери»</p>
@@ -460,7 +539,7 @@
       </div>
 
       <div id="receiptItemsList" class="space-y-1.5 border-y border-dashed border-zinc-300 py-2.5 max-h-48 overflow-y-auto no-scrollbar">
-        <!-- Позиции чека -->
+        <!-- Строки чека -->
       </div>
 
       <div class="flex justify-between items-center font-bold text-sm pt-1">
@@ -479,15 +558,53 @@
     </div>
   </div>
 
-  <!-- ==================== JAVASCRIPT ЛОГИКА ==================== -->
+  <!-- ==================== ЛОГИКА ==================== -->
   <script>
+    // ==================== УПРАВЛЕНИЕ ТЕМОЙ (СВЕТЛАЯ / ТЕМНАЯ) ====================
+    let isLightTheme = localStorage.getItem('app_theme') === 'light';
+
+    function applyCurrentTheme() {
+      const body = document.body;
+      const themeIcon = document.getElementById('themeToggleIcon');
+
+      if (isLightTheme) {
+        body.classList.add('light-theme');
+        if (themeIcon) themeIcon.setAttribute('data-lucide', 'moon');
+        // Обновление цвета в Telegram WebApp
+        if (window.Telegram?.WebApp?.setHeaderColor) {
+          window.Telegram.WebApp.setHeaderColor('#ffffff');
+          window.Telegram.WebApp.setBackgroundColor('#f4f6f8');
+        }
+      } else {
+        body.classList.remove('light-theme');
+        if (themeIcon) themeIcon.setAttribute('data-lucide', 'sun');
+        if (window.Telegram?.WebApp?.setHeaderColor) {
+          window.Telegram.WebApp.setHeaderColor('#0a0d0e');
+          window.Telegram.WebApp.setBackgroundColor('#0a0d0e');
+        }
+      }
+
+      // Перерисовка иконки темы
+      lucide.createIcons();
+
+      // Если карта уже открыта — обновляем слой
+      if (mapInstance) {
+        setTimeout(() => mapInstance.invalidateSize(), 100);
+      }
+    }
+
+    function toggleAppTheme() {
+      triggerHaptic('medium');
+      isLightTheme = !isLightTheme;
+      localStorage.setItem('app_theme', isLightTheme ? 'light' : 'dark');
+      applyCurrentTheme();
+    }
+
     // Инициализация Telegram WebApp
     const tg = window.Telegram?.WebApp;
     if (tg) {
       tg.ready();
       tg.expand();
-      if (tg.setHeaderColor) tg.setHeaderColor('#0a0d0e');
-      if (tg.setBackgroundColor) tg.setBackgroundColor('#0a0d0e');
     }
 
     function triggerHaptic(type = 'light') {
@@ -500,22 +617,22 @@
     }
 
     // Бренды
-    let currentBrand = 'croissant'; // 'croissant' | 'koenigs'
+    let currentBrand = 'croissant';
     function switchBrand() {
       triggerHaptic('selection');
       currentBrand = (currentBrand === 'croissant') ? 'koenigs' : 'croissant';
       const titleEl = document.getElementById('brandTitle');
       const subEl = document.getElementById('brandSubtitle');
       if (currentBrand === 'croissant') {
-        titleEl.innerHTML = `Круассан Кафе <span class="text-[9px] bg-mint-500/20 text-mint-400 px-1.5 py-0.5 rounded border border-mint-500/30 font-medium">КЛД</span>`;
+        titleEl.innerHTML = `Круассан Кафе <span class="text-[9px] bg-mint-500/20 text-mint-500 px-1.5 py-0.5 rounded border border-mint-500/30 font-medium">КЛД</span>`;
         subEl.innerText = 'Кафе • Кондитерская • Пекарня';
       } else {
-        titleEl.innerHTML = `Кёнигсберг Бейкери <span class="text-[9px] bg-mint-500/20 text-mint-400 px-1.5 py-0.5 rounded border border-mint-500/30 font-medium">1895</span>`;
+        titleEl.innerHTML = `Кёнигсберг Бейкери <span class="text-[9px] bg-mint-500/20 text-mint-500 px-1.5 py-0.5 rounded border border-mint-500/30 font-medium">1895</span>`;
         subEl.innerText = 'Ремесленная пекарня и кондитерская';
       }
     }
 
-    // Список пекарен для самовывоза (Калининград)
+    // Пекарни
     const pickupBakeries = [
       { id: 1, name: 'Круассан Кафе — Ленинский', address: 'г. Калининград, Ленинский пр-т, 83', distance: '450 м', hours: '08:00 – 22:00', coords: [54.7104, 20.5101] },
       { id: 2, name: 'Кёнигсберг Бейкери — ТЦ Европа', address: 'г. Калининград, ул. Театральная, 30', distance: '1.1 км', hours: '09:00 – 22:00', coords: [54.7188, 20.5005] },
@@ -525,7 +642,7 @@
 
     let activePickupId = 1;
 
-    // База данных меню (с аутентичными составами и КБЖУ)
+    // Каталог меню
     const dishes = [
       {
         id: 101,
@@ -669,7 +786,7 @@
       }
     ];
 
-    // Купоны (как на скриншотах БК, адаптированные под пекарню)
+    // Купоны
     const coupons = [
       { id: 'c1', code: 'МЯТА20', name: 'Скидка 20% на весь заказ', desc: 'При заказе любого круассана и кофе', discount: 20, type: 'public', emoji: '🥐' },
       { id: 'c2', code: 'КОФЕ', name: 'Второй напиток бесплатно', desc: 'При заказе любого авторского рафа', discount: 50, type: 'public', emoji: '☕' },
@@ -677,7 +794,7 @@
       { id: 'c4', code: 'VIPКЛД', name: 'Персональная скидка 25%', desc: 'Эксклюзивный купон для резидентов Клуба', discount: 25, type: 'personal', emoji: '👑' }
     ];
 
-    // История заказов (по образцу БК)
+    // История заказов
     let myOrders = [
       {
         id: 'K-45',
@@ -704,11 +821,10 @@
       }
     ];
 
-    // Корзина
     let cart = [];
     let currentModalDish = null;
 
-    // ==================== РЕНДЕР КАТАЛОГА (СЕТКА) ====================
+    // ==================== РЕНДЕР КАТАЛОГА ====================
     let currentCategoryFilter = 'all';
     let searchQuery = '';
 
@@ -725,10 +841,10 @@
 
       if (filtered.length === 0) {
         grid.innerHTML = `
-          <div class="col-span-full py-12 text-center text-zinc-500">
+          <div class="col-span-full py-12 text-center theme-mutedtext">
             <p class="text-3xl mb-2">🔍</p>
             <p class="text-xs font-bold">Ничего не найдено</p>
-            <p class="text-[11px] text-zinc-600 mt-1">Попробуйте изменить поисковый запрос</p>
+            <p class="text-[11px] mt-1">Попробуйте изменить поисковый запрос</p>
           </div>
         `;
         return;
@@ -736,29 +852,26 @@
 
       filtered.forEach(item => {
         const card = document.createElement('div');
-        card.className = "bg-brandCard border border-brandBorder rounded-2xl p-3 flex flex-col justify-between hover:border-mint-500/50 transition group";
+        card.className = "theme-card border rounded-2xl p-3 flex flex-col justify-between hover:border-mint-500/50 transition group shadow-sm";
         card.innerHTML = `
           <div>
-            <!-- Зона с крупным эмодзи -->
-            <div onclick="openDishModal(${item.id})" class="cursor-pointer w-full aspect-square rounded-xl bg-brandSurface border border-brandBorder flex items-center justify-center text-4xl mb-2.5 transition transform group-hover:scale-[1.02] shadow-inner relative">
+            <div onclick="openDishModal(${item.id})" class="cursor-pointer w-full aspect-square rounded-xl theme-surface border flex items-center justify-center text-4xl mb-2.5 transition transform group-hover:scale-[1.02] shadow-inner relative">
               <span>${item.emoji}</span>
-              <span class="absolute top-2 right-2 text-[9px] bg-brandDark/80 border border-brandBorder px-1.5 py-0.5 rounded text-zinc-400 font-bold">${item.weight}</span>
+              <span class="absolute top-2 right-2 text-[9px] theme-card border px-1.5 py-0.5 rounded theme-subtext font-bold">${item.weight}</span>
             </div>
 
-            <!-- Заголовок и цена -->
             <div onclick="openDishModal(${item.id})" class="cursor-pointer">
-              <h4 class="text-xs font-black text-white line-clamp-1 group-hover:text-mint-400 transition">${item.name}</h4>
-              <p class="text-[10px] text-zinc-400 line-clamp-2 mt-1 leading-snug">${item.ingredients}</p>
+              <h4 class="text-xs font-black line-clamp-1 group-hover:text-mint-500 transition">${item.name}</h4>
+              <p class="text-[10px] theme-subtext line-clamp-2 mt-1 leading-snug">${item.ingredients}</p>
             </div>
           </div>
 
-          <!-- Нижняя панель карточки (КБЖУ + Кнопка добавления) -->
-          <div class="mt-3 pt-2 border-t border-brandBorder/60 flex items-center justify-between">
+          <div class="mt-3 pt-2 border-t theme-border flex items-center justify-between">
             <div>
-              <span class="text-[9px] text-zinc-500 block uppercase font-bold">${item.kcal} ккал</span>
-              <span class="text-xs font-black text-mint-400">${item.price} ₽</span>
+              <span class="text-[9px] theme-mutedtext block uppercase font-bold">${item.kcal} ккал</span>
+              <span class="text-xs font-black text-mint-500">${item.price} ₽</span>
             </div>
-            <button onclick="addToCart(${item.id}); event.stopPropagation();" class="w-7 h-7 rounded-lg bg-mint-500/15 border border-mint-500/30 text-mint-400 hover:bg-mint-400 hover:text-brandDark flex items-center justify-center transition">
+            <button onclick="addToCart(${item.id}); event.stopPropagation();" class="w-7 h-7 rounded-lg bg-mint-500/15 border border-mint-500/30 text-mint-500 hover:bg-mint-500 hover:text-white flex items-center justify-center transition">
               <i data-lucide="plus" class="w-4 h-4"></i>
             </button>
           </div>
@@ -774,9 +887,9 @@
       currentCategoryFilter = cat;
       document.querySelectorAll('.cat-pill').forEach(btn => {
         if (btn.getAttribute('data-cat') === cat) {
-          btn.className = "cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-mint-400 text-brandDark transition";
+          btn.className = "cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-mint-500 text-white transition shadow-sm";
         } else {
-          btn.className = "cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-brandSurface border border-brandBorder text-zinc-400 hover:text-white transition";
+          btn.className = "cat-pill px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap theme-surface border theme-subtext hover:opacity-100 transition";
         }
       });
       renderCatalog();
@@ -881,10 +994,10 @@
 
       if (cart.length === 0) {
         container.innerHTML = `
-          <div class="py-10 text-center text-zinc-500">
+          <div class="py-10 text-center theme-mutedtext">
             <p class="text-3xl mb-1">🥐</p>
-            <p class="text-xs font-bold text-zinc-400">Ваша корзина пуста</p>
-            <p class="text-[11px] text-zinc-600 mt-0.5">Выберите круассаны и напитки в меню</p>
+            <p class="text-xs font-bold">Ваша корзина пуста</p>
+            <p class="text-[11px] mt-0.5">Выберите круассаны и напитки в меню</p>
           </div>
         `;
         document.getElementById('cartTotalPrice').innerText = '0 ₽';
@@ -909,19 +1022,19 @@
         totalC += item.c * item.qty;
 
         const row = document.createElement('div');
-        row.className = "flex items-center justify-between bg-brandSurface p-2.5 rounded-xl border border-brandBorder";
+        row.className = "flex items-center justify-between theme-surface p-2.5 rounded-xl border";
         row.innerHTML = `
           <div class="flex items-center gap-2.5">
             <span class="text-xl">${item.emoji}</span>
             <div>
-              <h5 class="text-xs font-bold text-white line-clamp-1">${item.name}</h5>
-              <span class="text-[10px] text-mint-400 font-semibold">${item.price * item.qty} ₽</span>
+              <h5 class="text-xs font-bold line-clamp-1">${item.name}</h5>
+              <span class="text-[10px] text-mint-500 font-semibold">${item.price * item.qty} ₽</span>
             </div>
           </div>
-          <div class="flex items-center gap-2 bg-brandDark border border-brandBorder rounded-lg px-1.5 py-0.5">
-            <button onclick="changeCartItemQty(${item.id}, -1)" class="text-zinc-400 hover:text-white text-xs px-1 font-black">-</button>
-            <span class="text-xs font-bold text-white min-w-[14px] text-center">${item.qty}</span>
-            <button onclick="changeCartItemQty(${item.id}, 1)" class="text-zinc-400 hover:text-white text-xs px-1 font-black">+</button>
+          <div class="flex items-center gap-2 theme-card border rounded-lg px-1.5 py-0.5">
+            <button onclick="changeCartItemQty(${item.id}, -1)" class="theme-subtext hover:opacity-100 text-xs px-1 font-black">-</button>
+            <span class="text-xs font-bold min-w-[14px] text-center">${item.qty}</span>
+            <button onclick="changeCartItemQty(${item.id}, 1)" class="theme-subtext hover:opacity-100 text-xs px-1 font-black">+</button>
           </div>
         `;
         container.appendChild(row);
@@ -980,25 +1093,25 @@
       pickupBakeries.forEach(bakery => {
         const isActive = (bakery.id === activePickupId);
         const card = document.createElement('div');
-        card.className = `p-3.5 rounded-2xl border transition cursor-pointer flex items-center justify-between ${
-          isActive ? 'bg-mint-500/15 border-mint-400' : 'bg-brandSurface border-brandBorder hover:border-zinc-500'
+        card.className = `p-3.5 rounded-2xl border transition cursor-pointer flex items-center justify-between shadow-sm ${
+          isActive ? 'bg-mint-500/15 border-mint-500' : 'theme-surface hover:border-zinc-400'
         }`;
         card.onclick = () => selectBakeryLocation(bakery.id);
 
         card.innerHTML = `
           <div>
             <div class="flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full ${isActive ? 'bg-mint-400' : 'bg-zinc-600'}"></span>
-              <h4 class="text-xs font-bold text-white">${bakery.name}</h4>
+              <span class="w-2 h-2 rounded-full ${isActive ? 'bg-mint-500' : 'bg-zinc-400'}"></span>
+              <h4 class="text-xs font-bold">${bakery.name}</h4>
             </div>
-            <p class="text-[11px] text-zinc-400 mt-0.5">${bakery.address}</p>
-            <div class="flex items-center gap-2 mt-1.5 text-[10px] text-zinc-500 font-medium">
+            <p class="text-[11px] theme-subtext mt-0.5">${bakery.address}</p>
+            <div class="flex items-center gap-2 mt-1.5 text-[10px] theme-mutedtext font-medium">
               <span>🕒 ${bakery.hours}</span>
               <span>•</span>
-              <span class="text-mint-400 font-bold">${bakery.distance}</span>
+              <span class="text-mint-500 font-bold">${bakery.distance}</span>
             </div>
           </div>
-          ${isActive ? '<span class="text-mint-400 font-black text-sm">✓</span>' : ''}
+          ${isActive ? '<span class="text-mint-500 font-black text-sm">✓</span>' : ''}
         `;
         container.appendChild(card);
       });
@@ -1011,8 +1124,6 @@
       if (bakery) {
         document.getElementById('headerPickupName').innerText = bakery.name.replace(/^(Круассан Кафе|Кёнигсберг Бейкери)\s*—\s*/, '');
         document.getElementById('activePickupAddressText').innerText = bakery.address;
-        
-        // Синхронизация с экраном карты
         updateSelectedRestaurantDetails(bakery);
       }
       closePickupSelectorModal();
@@ -1047,9 +1158,9 @@
       pickupBakeries.forEach(b => {
         const customIcon = L.divIcon({
           className: 'custom-pin',
-          html: `<div style="background:#14b8a6; color:#0a0d0e; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-center; font-weight:bold; font-size:14px; border:2px solid #fff; box-shadow:0 0 10px rgba(45,212,191,0.5);">🥐</div>`,
-          iconSize: [28, 28],
-          iconAnchor: [14, 14]
+          html: `<div style="background:#14b8a6; color:#ffffff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:14px; border:2px solid #ffffff; box-shadow:0 2px 8px rgba(0,0,0,0.3);">🥐</div>`,
+          iconSize: [30, 30],
+          iconAnchor: [15, 15]
         });
 
         const marker = L.marker(b.coords, { icon: customIcon }).addTo(mapInstance);
@@ -1084,11 +1195,11 @@
       const perBtn = document.getElementById('couponTabPersonal');
 
       if (tab === 'public') {
-        pubBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold bg-mint-400 text-brandDark transition";
-        perBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold text-zinc-400 hover:text-white transition";
+        pubBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold bg-mint-500 text-white transition shadow-sm";
+        perBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold theme-subtext hover:opacity-100 transition";
       } else {
-        perBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold bg-mint-400 text-brandDark transition";
-        pubBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold text-zinc-400 hover:text-white transition";
+        perBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold bg-mint-500 text-white transition shadow-sm";
+        pubBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold theme-subtext hover:opacity-100 transition";
       }
       renderCoupons();
     }
@@ -1100,17 +1211,17 @@
       const list = coupons.filter(c => c.type === currentCouponTab);
       list.forEach(c => {
         const card = document.createElement('div');
-        card.className = "bg-brandCard border border-brandBorder rounded-2xl p-3.5 flex items-center justify-between";
+        card.className = "theme-card border rounded-2xl p-3.5 flex items-center justify-between shadow-sm";
         card.innerHTML = `
           <div class="flex items-center gap-3">
             <div class="text-3xl">${c.emoji}</div>
             <div>
-              <span class="text-[10px] font-black uppercase text-mint-400 bg-mint-500/10 px-2 py-0.5 rounded border border-mint-500/20">${c.code}</span>
-              <h4 class="text-xs font-bold text-white mt-1">${c.name}</h4>
-              <p class="text-[10px] text-zinc-400">${c.desc}</p>
+              <span class="text-[10px] font-black uppercase text-mint-500 bg-mint-500/10 px-2 py-0.5 rounded border border-mint-500/20">${c.code}</span>
+              <h4 class="text-xs font-bold mt-1">${c.name}</h4>
+              <p class="text-[10px] theme-subtext">${c.desc}</p>
             </div>
           </div>
-          <button onclick="applyCouponCode('${c.code}')" class="px-3 py-1.5 bg-mint-400 hover:bg-mint-500 text-brandDark text-xs font-black rounded-xl transition shrink-0">
+          <button onclick="applyCouponCode('${c.code}')" class="px-3 py-1.5 bg-mint-500 hover:bg-mint-600 text-white text-xs font-black rounded-xl transition shrink-0 shadow-sm">
             ПРИМЕНИТЬ
           </button>
         `;
@@ -1137,39 +1248,39 @@
 
       myOrders.forEach(order => {
         const card = document.createElement('div');
-        card.className = "bg-brandCard border border-brandBorder rounded-2xl p-4 space-y-3";
+        card.className = "theme-card border rounded-2xl p-4 space-y-3 shadow-sm";
         
         const itemsList = order.items.map(i => `
-          <div class="flex justify-between text-xs text-zinc-300">
+          <div class="flex justify-between text-xs theme-subtext">
             <span>${i.name} × ${i.qty}</span>
-            <span class="font-bold text-white">${i.price * i.qty} ₽</span>
+            <span class="font-bold text-main">${i.price * i.qty} ₽</span>
           </div>
         `).join('');
 
         card.innerHTML = `
-          <div class="flex items-center justify-between border-b border-brandBorder/60 pb-2.5">
+          <div class="flex items-center justify-between border-b theme-border pb-2.5">
             <div>
-              <span class="text-xs font-black text-white tracking-wider">ЗАКАЗ № ${order.id} <span class="text-mint-400 font-mono">[${order.pin}]</span></span>
-              <p class="text-[10px] text-zinc-500">${order.date} • ${order.bakeryName}</p>
+              <span class="text-xs font-black tracking-wider">ЗАКАЗ № ${order.id} <span class="text-mint-500 font-mono">[${order.pin}]</span></span>
+              <p class="text-[10px] theme-mutedtext">${order.date} • ${order.bakeryName}</p>
             </div>
-            <span class="text-[10px] font-black px-2 py-0.5 rounded bg-zinc-800 text-mint-400 border border-mint-500/30 uppercase">${order.status}</span>
+            <span class="text-[10px] font-black px-2 py-0.5 rounded theme-surface text-mint-500 border border-mint-500/30 uppercase">${order.status}</span>
           </div>
 
           <div class="space-y-1">
             ${itemsList}
           </div>
 
-          <div class="flex items-center justify-between pt-1 border-t border-brandBorder/60">
-            <span class="text-xs text-zinc-400">Сумма заказа:</span>
-            <span class="text-sm font-black text-mint-400">${order.total} ₽</span>
+          <div class="flex items-center justify-between pt-1 border-t theme-border">
+            <span class="text-xs theme-subtext">Сумма заказа:</span>
+            <span class="text-sm font-black text-mint-500">${order.total} ₽</span>
           </div>
 
           <div class="grid grid-cols-2 gap-2 pt-1">
-            <button onclick="viewReceipt('${order.id}')" class="py-2 rounded-xl bg-brandSurface border border-brandBorder text-xs font-bold text-zinc-300 hover:text-white transition flex items-center justify-center gap-1.5">
-              <i data-lucide="receipt" class="w-3.5 h-3.5 text-mint-400"></i>
+            <button onclick="viewReceipt('${order.id}')" class="py-2 rounded-xl theme-surface border text-xs font-bold theme-subtext hover:opacity-100 transition flex items-center justify-center gap-1.5">
+              <i data-lucide="receipt" class="w-3.5 h-3.5 text-mint-500"></i>
               СМОТРЕТЬ ЧЕК
             </button>
-            <button onclick="repeatOrder('${order.id}')" class="py-2 rounded-xl bg-mint-400 hover:bg-mint-500 text-brandDark text-xs font-black transition flex items-center justify-center gap-1.5">
+            <button onclick="repeatOrder('${order.id}')" class="py-2 rounded-xl bg-mint-500 hover:bg-mint-600 text-white text-xs font-black transition flex items-center justify-center gap-1.5 shadow-sm">
               <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
               ПОВТОРИТЬ
             </button>
@@ -1222,15 +1333,15 @@
       openCartModal();
     }
 
-    // ==================== НАВИГАЦИЯ МЕЖДУ ЭКРАНАМИ ====================
+    // ==================== НАВИГАЦИЯ ====================
     function navSwitchScreen(screenId) {
       triggerHaptic('selection');
       document.querySelectorAll('.screen-view').forEach(s => s.classList.add('hidden'));
       document.querySelectorAll('.nav-item').forEach(btn => {
         if (btn.getAttribute('data-screen') === screenId) {
-          btn.className = "nav-item py-1 text-mint-400 flex flex-col items-center gap-1 transition font-bold";
+          btn.className = "nav-item py-1 text-mint-500 flex flex-col items-center gap-1 transition font-bold";
         } else {
-          btn.className = "nav-item py-1 text-zinc-400 hover:text-white flex flex-col items-center gap-1 transition";
+          btn.className = "nav-item py-1 theme-subtext hover:text-mint-500 flex flex-col items-center gap-1 transition";
         }
       });
 
@@ -1246,8 +1357,9 @@
       }
     }
 
-    // Стартовая инициализация
+    // Старт
     window.addEventListener('DOMContentLoaded', () => {
+      applyCurrentTheme();
       renderCatalog();
       renderCoupons();
       lucide.createIcons();
